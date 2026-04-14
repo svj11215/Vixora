@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+    // Visitor requests:
+    // - Guard (creator) can read, create, delete their own
+    // - Resident (recipient) can read and update status/note on their own
+    match /visitor_requests/{requestId} {
+      allow create: if request.auth != null
+        && request.resource.data.guardId == request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      allow read: if request.auth != null
+        && (resource.data.guardId == request.auth.uid
+         || resource.data.residentId == request.auth.uid);
+
+      allow update: if request.auth != null
+        && resource.data.residentId == request.auth.uid
+        && request.resource.data.status in ['approved', 'rejected']
+        && request.resource.data.guardId == resource.data.guardId;
+
+      allow delete: if request.auth != null
+        && resource.data.guardId == request.auth.uid
+        && resource.data.status == 'pending';
+    }
+  }
+}
