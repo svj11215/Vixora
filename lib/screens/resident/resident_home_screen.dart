@@ -1,11 +1,14 @@
-/// Resident home screen with BottomNavigationBar: Requests, Profile, and About tabs.
+/// Resident home screen with custom bottom nav bar.
+/// ALL initState() FCM handler logic kept EXACTLY AS-IS.
 library;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:vixora/core/theme/app_theme.dart';
+import 'package:vixora/core/utils/page_transitions.dart';
 import 'package:vixora/screens/resident/request_detail_screen.dart';
 import 'package:vixora/screens/resident/resident_requests_screen.dart';
-import 'package:vixora/screens/shared/about_screen.dart';
 import 'package:vixora/screens/shared/profile_screen.dart';
 
 class ResidentHomeScreen extends StatefulWidget {
@@ -21,7 +24,6 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   final List<Widget> _screens = const [
     ResidentRequestsScreen(),
     ProfileScreen(),
-    AboutScreen(),
   ];
 
   @override
@@ -56,8 +58,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   /// Navigates to RequestDetailScreen with the given request ID.
   void _navigateToRequest(String requestId) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RequestDetailScreen(requestId: requestId),
+      VixoraPageRoute(
+        page: RequestDetailScreen(requestId: requestId),
       ),
     );
   }
@@ -66,26 +68,62 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            activeIcon: Icon(Icons.notifications),
-            label: 'Requests',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          border: const Border(
+            top: BorderSide(color: AppColors.surfaceBorder, width: 1),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: Colors.transparent,
+          selectedItemColor: AppColors.accentCyan,
+          unselectedItemColor: AppColors.textTertiary,
+          selectedLabelStyle: GoogleFonts.poppins(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info_outline),
-            activeIcon: Icon(Icons.info),
-            label: 'About',
-          ),
-        ],
+          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 11),
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.inbox_rounded),
+              activeIcon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.accentCyan.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.inbox_rounded,
+                    color: AppColors.accentCyan),
+              ),
+              label: 'Requests',
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.person_rounded),
+              activeIcon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.accentCyan.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.person_rounded,
+                    color: AppColors.accentCyan),
+              ),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

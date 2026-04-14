@@ -1,6 +1,9 @@
-/// Full-screen loading overlay with semi-transparent barrier and centered spinner.
+/// Premium full-screen loading overlay with gradient spinner.
+/// Keeps existing usage interface AS-IS.
 library;
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:vixora/core/theme/app_theme.dart';
 
 class LoadingOverlay extends StatelessWidget {
@@ -27,32 +30,42 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.4),
-              child: Center(
-                child: Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(
-                          color: AppTheme.primaryColor,
+            child: AnimatedOpacity(
+              opacity: isLoading ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: Container(
+                color: Colors.black.withOpacity(0.7),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.accent,
+                          shape: BoxShape.circle,
+                          boxShadow: [AppShadows.glowBlue],
                         ),
-                        if (message != null) ...[
-                          const SizedBox(height: 16),
-                          Text(
-                            message!,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
+                        child: const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                            strokeCap: StrokeCap.round,
                           ),
-                        ],
-                      ],
-                    ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        message ?? 'Please wait...',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

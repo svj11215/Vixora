@@ -1,6 +1,8 @@
-/// Pill-shaped status badge widget with color-coded background for pending/approved/rejected.
+/// Premium status badge with soft glow and icon.
 library;
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:vixora/core/constants/app_constants.dart';
 import 'package:vixora/core/theme/app_theme.dart';
 
@@ -12,37 +14,63 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = _getStatusColor();
+    final statusIcon = _getStatusIcon();
+    final statusLabel = _getLabel();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: _getBackgroundColor(),
-        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
-      ),
-      child: Text(
-        _getLabel(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(
+          color: statusColor.withOpacity(0.3),
+          width: 1,
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(statusIcon, size: 12, color: statusColor),
+          const SizedBox(width: 4),
+          Text(
+            statusLabel.toUpperCase(),
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+              color: statusColor,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  /// Returns the background color based on status.
-  Color _getBackgroundColor() {
+  Color _getStatusColor() {
     switch (status) {
       case AppConstants.statusApproved:
-        return AppTheme.approvedColor;
+        return AppColors.accentGreen;
       case AppConstants.statusRejected:
-        return AppTheme.rejectedColor;
+        return AppColors.accentRed;
       case AppConstants.statusPending:
       default:
-        return AppTheme.pendingColor;
+        return AppColors.accentAmber;
     }
   }
 
-  /// Returns the capitalized label text.
+  IconData _getStatusIcon() {
+    switch (status) {
+      case AppConstants.statusApproved:
+        return Icons.check_circle_rounded;
+      case AppConstants.statusRejected:
+        return Icons.cancel_rounded;
+      case AppConstants.statusPending:
+      default:
+        return Icons.schedule_rounded;
+    }
+  }
+
   String _getLabel() {
     switch (status) {
       case AppConstants.statusApproved:

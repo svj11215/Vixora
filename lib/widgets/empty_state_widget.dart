@@ -1,6 +1,10 @@
-/// Widget displayed when a list is empty, showing an icon, title, and subtitle.
+/// Premium empty state widget with gradient icon container and optional action.
 library;
+
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:vixora/core/theme/app_theme.dart';
+import 'package:vixora/widgets/app_button.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   /// The icon to display.
@@ -12,46 +16,64 @@ class EmptyStateWidget extends StatelessWidget {
   /// The descriptive subtitle text.
   final String subtitle;
 
+  /// Optional action button label.
+  final String? actionLabel;
+
+  /// Optional action button callback.
+  final VoidCallback? onAction;
+
   const EmptyStateWidget({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w600,
+      child: FadeIn(
+        duration: const Duration(milliseconds: 500),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.accent,
+                  shape: BoxShape.circle,
+                  boxShadow: [AppShadows.glowBlue],
+                ),
+                child: Icon(icon, size: 36, color: Colors.white),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade500,
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: AppTextStyles.headline,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (actionLabel != null) ...[
+                const SizedBox(height: 20),
+                AppButton(
+                  label: actionLabel!,
+                  onPressed: onAction,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

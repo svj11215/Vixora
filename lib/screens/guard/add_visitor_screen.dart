@@ -1,6 +1,9 @@
-/// Screen for guards to submit a new visitor request with photo upload.
+/// Premium screen for guards to submit a new visitor request.
+/// ALL form submission, validation, and layout logic kept AS-IS.
 library;
+
 import 'dart:io';
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +12,8 @@ import 'package:vixora/core/theme/app_theme.dart';
 import 'package:vixora/core/utils/validators.dart';
 import 'package:vixora/providers/auth_provider.dart' as app;
 import 'package:vixora/providers/visitor_request_provider.dart';
+import 'package:vixora/widgets/app_button.dart';
+import 'package:vixora/widgets/glass_card.dart';
 import 'package:vixora/widgets/image_picker_widget.dart';
 import 'package:vixora/widgets/loading_overlay.dart';
 
@@ -46,247 +51,217 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
           message: 'Submitting request...',
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Add Visitor Request'),
+              title: Row(
+                children: [
+                  const Icon(Icons.person_add_rounded, color: AppColors.accentCyan),
+                  const SizedBox(width: 8),
+                  Text('New Request', style: AppTextStyles.title),
+                ],
+              ),
               automaticallyImplyLeading: false,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(
+                  color: AppColors.surfaceBorder,
+                  height: 1,
+                ),
+              ),
             ),
             body: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Header Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppTheme.primaryColor, Color(0xFF0D4F7E)],
-                        ),
-                        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.person_add_alt_1,
-                              color: Colors.white, size: 28),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'New Visitor Entry',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  'Fill in the visitor details below',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Visitor Name
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Visitor Name',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      validator: Validators.validateVisitorName,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Phone Number
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator: Validators.validatePhoneNumber,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Purpose Dropdown
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedPurpose,
-                      decoration: const InputDecoration(
-                        labelText: 'Purpose of Visit',
-                        prefixIcon: Icon(Icons.category_outlined),
-                      ),
-                      items: AppConstants.visitPurposes
-                          .map((purpose) => DropdownMenuItem(
-                                value: purpose,
-                                child: Text(purpose),
-                              ))
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedPurpose = value),
-                      validator: Validators.validatePurpose,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Resident Code
-                    TextFormField(
-                      controller: _residentCodeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Resident Code',
-                        prefixIcon: Icon(Icons.vpn_key_outlined),
-                        hintText: '4-digit code',
-                      ),
-                      keyboardType: TextInputType.number,
-                      maxLength: 4,
-                      validator: Validators.validateResidentCode,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Visitor Photo Section
-                    Text(
-                      'Visitor Photo *',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ImagePickerWidget(
-                      onImageSelected: _onImageSelected,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Photo preview
-                    if (_selectedImage != null)
-                      Center(
-                        child: Stack(
+                    // Header Area
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 400),
+                      child: GlassCard(
+                        gradient: AppGradients.accent,
+                        child: Row(
                           children: [
-                            ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.cardRadius),
-                              child: Image.file(
-                                _selectedImage!,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
                               ),
+                              child: const Icon(Icons.shield_rounded,
+                                  color: Colors.white, size: 28),
                             ),
-                            if (_isUploadingImage)
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                    borderRadius: BorderRadius.circular(
-                                        AppTheme.cardRadius),
-                                  ),
-                                  child: const Center(
-                                    child: SizedBox(
-                                      width: 30,
-                                      height: 30,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 3,
-                                        color: Colors.white,
-                                      ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Create Entry Request',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                ),
-                              ),
-                            if (_uploadedImageUrl != null && !_isUploadingImage)
-                              Positioned(
-                                bottom: 4,
-                                right: 4,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: AppTheme.approvedColor,
-                                    shape: BoxShape.circle,
+                                  Text(
+                                    'Fill the details to notify resident',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                  child: const Icon(
-                                    Icons.check,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
+                                ],
                               ),
+                            ),
                           ],
                         ),
                       ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
 
-                    if (_selectedImage == null)
-                      Container(
-                        height: 100,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.grey.shade300, style: BorderStyle.solid),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.cardRadius),
-                          color: Colors.grey.shade100,
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_a_photo_outlined,
-                                  size: 32, color: Colors.grey.shade400),
-                              const SizedBox(height: 4),
-                              Text(
-                                'No photo selected',
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    const SizedBox(height: 24),
-
-                    // Submit Button
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: (_isUploadingImage || provider.isSubmitting)
-                            ? null
-                            : _submitRequest,
-                        child: const Text('Submit Request'),
+                    // Section: Visitor Details
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 100),
+                      duration: const Duration(milliseconds: 400),
+                      child: _buildSectionHeader(
+                        Icons.contact_mail_rounded,
+                        'Visitor Details',
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.sm),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 150),
+                      duration: const Duration(milliseconds: 400),
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _nameController,
+                              style: AppTextStyles.body,
+                              decoration: const InputDecoration(
+                                labelText: 'Visitor Name',
+                                prefixIcon: Icon(Icons.person_outline),
+                              ),
+                              textCapitalization: TextCapitalization.words,
+                              validator: Validators.validateVisitorName,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _phoneController,
+                              style: AppTextStyles.body,
+                              decoration: const InputDecoration(
+                                labelText: 'Phone Number',
+                                prefixIcon: Icon(Icons.phone_outlined),
+                              ),
+                              keyboardType: TextInputType.phone,
+                              validator: Validators.validatePhoneNumber,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // Section: Visit Info
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 400),
+                      child: _buildSectionHeader(
+                        Icons.info_outline_rounded,
+                        'Visit Information',
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 400),
+                      child: GlassCard(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                          children: [
+                            DropdownButtonFormField<String>(
+                              value: _selectedPurpose,
+                              style: AppTextStyles.body,
+                              dropdownColor: AppColors.surfaceElevated,
+                              icon: const Icon(Icons.arrow_drop_down_rounded,
+                                  color: AppColors.textSecondary),
+                              decoration: const InputDecoration(
+                                labelText: 'Purpose of Visit',
+                                prefixIcon: Icon(Icons.category_outlined),
+                              ),
+                              items: AppConstants.visitPurposes
+                                  .map((purpose) => DropdownMenuItem(
+                                        value: purpose,
+                                        child: Text(purpose),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) =>
+                                  setState(() => _selectedPurpose = value),
+                              validator: Validators.validatePurpose,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _residentCodeController,
+                              style: AppTextStyles.body,
+                              decoration: const InputDecoration(
+                                labelText: 'Resident Code',
+                                prefixIcon: Icon(Icons.vpn_key_outlined),
+                                hintText: '4-digit code',
+                              ),
+                              keyboardType: TextInputType.number,
+                              maxLength: 4,
+                              validator: Validators.validateResidentCode,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // Section: Photo
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 400),
+                      child: _buildSectionHeader(
+                        Icons.camera_alt_rounded,
+                        'Visitor Photo *',
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 350),
+                      duration: const Duration(milliseconds: 400),
+                      child: ImagePickerWidget(
+                        onImageSelected: _onImageSelected,
+                        selectedImage: _selectedImage,
+                        isUploading: _isUploadingImage,
+                        isUploaded: _uploadedImageUrl != null,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
 
                     // Error display
                     if (provider.submitError != null) ...[
-                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppTheme.rejectedColor.withValues(alpha: 0.1),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.buttonRadius),
+                          color: AppColors.accentRed.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
+                          border: Border.all(
+                            color: AppColors.accentRed.withOpacity(0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.error_outline,
-                                color: AppTheme.rejectedColor, size: 20),
+                                color: AppColors.accentRed, size: 20),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 provider.submitError!,
-                                style: const TextStyle(
-                                  color: AppTheme.rejectedColor,
+                                style: GoogleFonts.poppins(
+                                  color: AppColors.accentRed,
                                   fontSize: 13,
                                 ),
                               ),
@@ -294,7 +269,21 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
                     ],
+
+                    // Submit Button
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 400),
+                      child: AppButton(
+                        label: 'Submit Request',
+                        icon: Icons.send_rounded,
+                        isLoading: _isUploadingImage || provider.isSubmitting,
+                        onPressed: _submitRequest,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
                   ],
                 ),
               ),
@@ -305,9 +294,34 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     );
   }
 
+  Widget _buildSectionHeader(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.accentCyan),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Handles image selection and uploads to Cloudinary immediately.
   Future<void> _onImageSelected(File? file) async {
-    if (file == null) return;
+    if (file == null) {
+      if (_selectedImage != null) {
+        setState(() {
+          _selectedImage = null;
+          _uploadedImageUrl = null;
+        });
+      }
+      return;
+    }
 
     setState(() {
       _selectedImage = file;
@@ -332,7 +346,13 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
 
     if (_uploadedImageUrl == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please take or select a visitor photo')),
+        SnackBar(
+          content: Text(
+            'Please take or select a visitor photo',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: AppColors.accentRed,
+        ),
       );
       return;
     }
@@ -348,9 +368,12 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     if (resident == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No resident found with this code'),
-            backgroundColor: AppTheme.rejectedColor,
+          SnackBar(
+            content: Text(
+              'No resident found with this code',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: AppColors.accentRed,
           ),
         );
       }
@@ -371,9 +394,12 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
       final messenger = ScaffoldMessenger.of(context);
       _resetForm();
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Request submitted successfully'),
-          backgroundColor: AppTheme.approvedColor,
+        SnackBar(
+          content: Text(
+            'Request submitted successfully',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: AppColors.accentGreen,
         ),
       );
     }

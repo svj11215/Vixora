@@ -1,13 +1,21 @@
-/// Profile screen shared by both guard and resident roles. Shows user info with editable name.
+/// Premium profile screen with glass cards and animated editing state.
+/// Contains editable name and read-only auth/resident fields.
+/// ALL ProfileProvider and AuthProvider logic preserved AS-IS.
 library;
+
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:vixora/core/constants/app_constants.dart';
 import 'package:vixora/core/theme/app_theme.dart';
 import 'package:vixora/core/utils/validators.dart';
 import 'package:vixora/providers/auth_provider.dart' as app;
 import 'package:vixora/providers/profile_provider.dart';
+import 'package:vixora/screens/shared/about_screen.dart';
+import 'package:vixora/widgets/app_button.dart';
+import 'package:vixora/core/utils/page_transitions.dart';
+import 'package:vixora/screens/auth/login_screen.dart';
+import 'package:vixora/widgets/glass_card.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,6 +26,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _isEditing = false;
 
   @override
@@ -49,198 +58,282 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: AppColors.surfaceDarker,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Row(
+          children: [
+            const Icon(Icons.person_rounded, color: AppColors.accentCyan),
+            const SizedBox(width: 8),
+            Text('My Profile', style: AppTextStyles.title),
+          ],
+        ),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isEditing ? Icons.close_rounded : Icons.edit_rounded,
+              color: AppColors.textPrimary,
+            ),
+            tooltip: _isEditing ? 'Cancel Edit' : 'Edit Profile',
+            onPressed: () {
+              setState(() {
+                if (_isEditing) {
+                  // Reset to original name if cancelled
+                  _nameController.text = currentUser.name;
+                }
+                _isEditing = !_isEditing;
+              });
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: AppColors.surfaceBorder,
+            height: 1,
+          ),
+        ),
       ),
       body: Consumer<ProfileProvider>(
         builder: (context, profileProvider, _) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                // Avatar
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryColor, Color(0xFF0D4F7E)],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: AppSpacing.md),
+                  // Avatar Header
+                  FadeInDown(
+                    duration: const Duration(milliseconds: 400),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 110,
+                            height: 110,
+                            decoration: BoxDecoration(
+                              gradient: AppGradients.accent,
+                              shape: BoxShape.circle,
+                              boxShadow: [AppShadows.glowBlue],
+                              border: Border.all(
+                                color: AppColors.surfaceDark,
+                                width: 4,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getInitials(currentUser.name),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: currentUser.isStaff
+                                  ? AppColors.primaryNavy.withOpacity(0.3)
+                                  : AppColors.accentCyan.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                              border: Border.all(
+                                color: currentUser.isStaff
+                                    ? AppColors.primaryBlue
+                                    : AppColors.accentCyan.withOpacity(0.5),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  currentUser.isStaff
+                                      ? Icons.security_rounded
+                                      : Icons.home_rounded,
+                                  size: 14,
+                                  color: currentUser.isStaff
+                                      ? AppColors.primaryBlue
+                                      : AppColors.accentCyan,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  currentUser.isStaff ? 'Security Guard' : 'Resident',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: currentUser.isStaff
+                                        ? Colors.white
+                                        : AppColors.accentCyan,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  child: Center(
-                    child: Text(
-                      _getInitials(currentUser.name),
-                      style: GoogleFonts.poppins(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                  const SizedBox(height: AppSpacing.xl),
+
+                  // Personal Information
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 100),
+                    duration: const Duration(milliseconds: 400),
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Personal Information',
+                            style: AppTextStyles.subtitle.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Name field (Editable)
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(AppRadius.medium),
+                              boxShadow: _isEditing ? [AppShadows.glowCyan] : [],
+                            ),
+                            child: TextFormField(
+                              controller: _nameController,
+                              style: AppTextStyles.body,
+                              enabled: _isEditing,
+                              decoration: InputDecoration(
+                                labelText: 'Full Name',
+                                prefixIcon: Icon(
+                                  Icons.person_outline_rounded,
+                                  color: _isEditing
+                                      ? AppColors.accentCyan
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                              validator: Validators.validateName,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Email (Read-only)
+                          TextFormField(
+                            initialValue: currentUser.email,
+                            enabled: false,
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'Email Address',
+                              prefixIcon: Icon(Icons.email_outlined),
+                            ),
+                          ),
+
+                          // Resident specifics
+                          if (currentUser.isResident) ...[
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              initialValue: currentUser.userCode,
+                              enabled: false,
+                              style: AppTextStyles.body.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                              decoration: const InputDecoration(
+                                labelText: 'Resident Code',
+                                prefixIcon: Icon(Icons.vpn_key_outlined),
+                              ),
+                            ),
+                            if (currentUser.flatNo.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                initialValue: currentUser.flatNo,
+                                enabled: false,
+                                style: AppTextStyles.body.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'Flat / Apartment No.',
+                                  prefixIcon: Icon(Icons.home_work_outlined),
+                                ),
+                              ),
+                            ]
+                          ],
+
+                          // Save Button
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: _isEditing
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 20),
+                                    child: AppButton(
+                                      label: 'Save Changes',
+                                      icon: Icons.check_rounded,
+                                      isLoading: profileProvider.isSaving,
+                                      onPressed: _saveName,
+                                      width: double.infinity,
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+
+                          // Error
+                          if (profileProvider.error != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              profileProvider.error!,
+                              style: const TextStyle(
+                                color: AppColors.accentRed,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
-                // Role badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: currentUser.isStaff
-                        ? AppTheme.secondaryColor.withValues(alpha: 0.15)
-                        : AppTheme.primaryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppTheme.chipRadius),
-                  ),
-                  child: Text(
-                    currentUser.isStaff ? '🛡️ Security Guard' : '🏠 Resident',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: currentUser.isStaff
-                          ? AppTheme.secondaryColor
-                          : AppTheme.primaryColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Name field
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
+                  // Actions & About
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 400),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Personal Information',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        AppButton(
+                          label: 'About Vixora',
+                          icon: Icons.info_outline_rounded,
+                          outlined: true,
+                          width: double.infinity,
+                          outlineColor: AppColors.textSecondary,
+                          onPressed: () => Navigator.push(
+                            context,
+                            VixoraPageRoute(page: const AboutScreen()),
                           ),
                         ),
                         const SizedBox(height: 16),
-
-                        // Name
-                        TextFormField(
-                          controller: _nameController,
-                          enabled: _isEditing,
-                          decoration: InputDecoration(
-                            labelText: 'Name',
-                            prefixIcon: const Icon(Icons.person_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(_isEditing
-                                  ? Icons.close
-                                  : Icons.edit_outlined),
-                              onPressed: () =>
-                                  setState(() => _isEditing = !_isEditing),
-                            ),
-                          ),
-                          validator: Validators.validateName,
+                        AppButton(
+                          label: 'Sign Out',
+                          icon: Icons.logout_rounded,
+                          outlined: true,
+                          width: double.infinity,
+                          outlineColor: AppColors.accentRed,
+                          onPressed: () => _signOut(context),
                         ),
-                        const SizedBox(height: 12),
-
-                        // Email (read-only)
-                        TextFormField(
-                          initialValue: currentUser.email,
-                          enabled: false,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // User Code (read-only for residents)
-                        if (currentUser.isResident) ...[
-                          TextFormField(
-                            initialValue: currentUser.userCode,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              labelText: 'Resident Code',
-                              prefixIcon: Icon(Icons.vpn_key_outlined),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-
-                        // Flat No (read-only)
-                        if (currentUser.isResident &&
-                            currentUser.flatNo.isNotEmpty)
-                          TextFormField(
-                            initialValue: currentUser.flatNo,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              labelText: 'Flat No.',
-                              prefixIcon: Icon(Icons.home_outlined),
-                            ),
-                          ),
-
-                        // Save button
-                        if (_isEditing) ...[
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: profileProvider.isSaving
-                                  ? null
-                                  : _saveName,
-                              child: profileProvider.isSaving
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Save'),
-                            ),
-                          ),
-                        ],
-
-                        // Error
-                        if (profileProvider.error != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            profileProvider.error!,
-                            style: const TextStyle(
-                              color: AppTheme.rejectedColor,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-
-                // Sign Out
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _signOut(context),
-                    icon: const Icon(Icons.logout, color: AppTheme.rejectedColor),
-                    label: const Text('Sign Out'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.rejectedColor,
-                      side: const BorderSide(color: AppTheme.rejectedColor),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+              ),
             ),
           );
         },
@@ -261,14 +354,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Saves the updated name via ProfileProvider.
   Future<void> _saveName() async {
-    final name = _nameController.text.trim();
-    if (name.isEmpty || name.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name must be at least 2 characters')),
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
+    final name = _nameController.text.trim();
     final authProvider = context.read<app.AuthProvider>();
     final uid = authProvider.currentUser?.uid;
     if (uid == null) return;
@@ -280,9 +368,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final messenger = ScaffoldMessenger.of(context);
       setState(() => _isEditing = false);
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Name updated successfully'),
-          backgroundColor: AppTheme.approvedColor,
+        SnackBar(
+          content: Text(
+            'Profile updated successfully',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: AppColors.accentGreen,
         ),
       );
       // Reload user data in AuthProvider
@@ -291,9 +382,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _signOut(BuildContext context) async {
-    final nav = Navigator.of(context);
     final authProvider = context.read<app.AuthProvider>();
     await authProvider.signOut();
-    nav.pushReplacementNamed(AppConstants.routeLogin);
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
+        VixoraPageRoute(page: const LoginScreen()),
+      );
+    }
   }
 }

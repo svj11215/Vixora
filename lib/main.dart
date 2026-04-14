@@ -44,9 +44,9 @@ class VixoraApp extends StatelessWidget {
       child: MaterialApp(
         title: AppConstants.appName,
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme(),
+        theme: AppTheme.darkTheme(),
         darkTheme: AppTheme.darkTheme(),
-        themeMode: ThemeMode.system,
+        themeMode: ThemeMode.dark,
         initialRoute: AppConstants.routeSplash,
         routes: {
           AppConstants.routeSplash: (_) => const SplashScreen(),

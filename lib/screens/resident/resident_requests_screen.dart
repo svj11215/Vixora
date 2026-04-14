@@ -1,6 +1,8 @@
-/// Screen for residents to view, approve, and reject visitor requests.
+/// Resident requests screen with premium access code card, pill tab bar, and shimmer loading.
+/// ALL StreamBuilder, provider calls, and business logic kept AS-IS.
 library;
-import 'package:cached_network_image/cached_network_image.dart';
+
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -11,15 +13,17 @@ import 'package:vixora/models/visitor_request_model.dart';
 import 'package:vixora/providers/auth_provider.dart' as app;
 import 'package:vixora/providers/visitor_request_provider.dart';
 import 'package:vixora/widgets/empty_state_widget.dart';
+import 'package:vixora/widgets/glass_card.dart';
 import 'package:vixora/widgets/loading_overlay.dart';
-import 'package:vixora/widgets/status_badge.dart';
+import 'package:vixora/widgets/shimmer_loader.dart';
 import 'package:vixora/widgets/visitor_request_card.dart';
 
 class ResidentRequestsScreen extends StatefulWidget {
   const ResidentRequestsScreen({super.key});
 
   @override
-  State<ResidentRequestsScreen> createState() => _ResidentRequestsScreenState();
+  State<ResidentRequestsScreen> createState() =>
+      _ResidentRequestsScreenState();
 }
 
 class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
@@ -40,75 +44,148 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
     super.dispose();
   }
 
+  String _formatCode(String code) {
+    return code.split('').join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<app.AuthProvider>();
     final currentUser = authProvider.currentUser;
     if (currentUser == null) {
-      return const Center(child: Text('Not authenticated'));
+      return const Center(
+        child: Text('Not authenticated',
+            style: TextStyle(color: AppColors.textSecondary)),
+      );
     }
 
     final provider = context.read<VisitorRequestProvider>();
 
     return Scaffold(
+      backgroundColor: AppColors.surfaceDarker,
       appBar: AppBar(
-        title: const Text('Visitor Requests'),
+        backgroundColor: AppColors.surfaceDarker,
+        title: Row(
+          children: [
+            const Icon(Icons.security_rounded,
+                color: AppColors.accentCyan, size: 20),
+            const SizedBox(width: 8),
+            Text('Vixora', style: AppTextStyles.title),
+          ],
+        ),
         automaticallyImplyLeading: false,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.primaryColor,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppTheme.primaryColor,
-          labelStyle: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: AppColors.surfaceBorder,
+            height: 1,
           ),
-          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
         ),
       ),
       body: Column(
         children: [
           // Resident code card
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: FadeInDown(
+              duration: const Duration(milliseconds: 400),
+              child: GlassCard(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1E3A8A),
+                    Color(0xFF1E40AF),
+                    Color(0xFF0369A1),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.vpn_key_rounded,
+                                  color: AppColors.accentCyan, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                'YOUR ACCESS CODE',
+                                style: AppTextStyles.label.copyWith(
+                                  color:
+                                      AppColors.accentCyan.withOpacity(0.8),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _formatCode(currentUser.userCode),
+                            style: GoogleFonts.poppins(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Share this code with your guard',
+                            style: AppTextStyles.caption.copyWith(
+                              color: Colors.white.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.shield_rounded,
+                          color: Colors.white, size: 28),
+                    ),
+                  ],
+                ),
               ),
-              borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.vpn_key, color: Colors.white, size: 22),
-                const SizedBox(width: 12),
-                Text(
-                  'Your Resident Code: ',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  currentUser.userCode,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 4,
-                  ),
-                ),
-              ],
             ),
           ),
+
+          // Custom pill tab bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceDark,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  gradient: AppGradients.accent,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: Colors.white,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: GoogleFonts.poppins(fontSize: 13),
+                dividerColor: Colors.transparent,
+                tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.sm),
 
           // Requests list in tabs
           Expanded(
@@ -116,11 +193,17 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
               stream: provider.residentRequestsStream(currentUser.uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const ShimmerList(count: 3);
                 }
 
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: AppTextStyles.body
+                          .copyWith(color: AppColors.accentRed),
+                    ),
+                  );
                 }
 
                 final allRequests = snapshot.data ?? [];
@@ -138,19 +221,29 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                     }
 
                     return RefreshIndicator(
+                      color: AppColors.accentCyan,
+                      backgroundColor: AppColors.surfaceDark,
                       onRefresh: () async {
                         await Future.delayed(
                             const Duration(milliseconds: 500));
                       },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(top: 8, bottom: 16),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.only(
+                            top: AppSpacing.sm, bottom: AppSpacing.md),
                         itemCount: filtered.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.sm),
                         itemBuilder: (context, index) {
                           final request = filtered[index];
-                          return VisitorRequestCard(
-                            request: request,
-                            onTap: () =>
-                                _showDetailSheet(context, request),
+                          final delay = (index * 50).clamp(0, 200);
+                          return FadeInUp(
+                            delay: Duration(milliseconds: delay),
+                            duration: const Duration(milliseconds: 400),
+                            child: VisitorRequestCard(
+                              request: request,
+                              onTap: () =>
+                                  _showDetailSheet(context, request),
+                            ),
                           );
                         },
                       ),
@@ -183,14 +276,15 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
   /// Shows a detail bottom sheet with approve/reject actions.
   void _showDetailSheet(BuildContext context, VisitorRequestModel request) {
     final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
-    final theme = Theme.of(context);
     final noteController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: AppColors.surfaceDark,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppRadius.xlarge)),
       ),
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -208,7 +302,7 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                       message: 'Updating request...',
                       child: SingleChildScrollView(
                         controller: scrollController,
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -218,141 +312,168 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                 width: 40,
                                 height: 4,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade300,
-                                  borderRadius: BorderRadius.circular(2),
+                                  color: AppColors.textTertiary
+                                      .withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(
+                                      AppRadius.pill),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 20),
-                            // Visitor photo
-                            Center(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: request.imageUrl.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: request.imageUrl,
-                                        width: 200,
-                                        height: 200,
-                                        fit: BoxFit.cover,
-                                        placeholder: (_, __) => Container(
-                                          width: 200,
-                                          height: 200,
-                                          color: Colors.grey.shade200,
-                                          child: const Center(
-                                              child:
-                                                  CircularProgressIndicator()),
-                                        ),
-                                        errorWidget: (_, __, ___) => Container(
-                                          width: 200,
-                                          height: 200,
-                                          color: Colors.grey.shade200,
-                                          child: const Icon(Icons.person,
-                                              size: 60),
-                                        ),
-                                      )
-                                    : Container(
-                                        width: 200,
-                                        height: 200,
-                                        color: Colors.grey.shade200,
-                                        child:
-                                            const Icon(Icons.person, size: 60),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Center(
-                                child: StatusBadge(status: request.status)),
-                            const SizedBox(height: 20),
-                            // Details
-                            _buildDetailRow(Icons.person, 'Visitor Name',
-                                request.visitorName, theme),
-                            _buildDetailRow(Icons.phone, 'Phone',
-                                request.visitorPhone, theme),
-                            _buildDetailRow(Icons.label, 'Purpose',
-                                request.purpose, theme),
-                            _buildDetailRow(Icons.vpn_key, 'Resident Code',
-                                request.residentCode, theme),
-                            _buildDetailRow(
-                                Icons.access_time,
-                                'Created',
-                                dateFormat
-                                    .format(request.createdAt.toDate()),
-                                theme),
 
+                            // Visitor name + status
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    request.visitorName,
+                                    style: AppTextStyles.headline,
+                                  ),
+                                ),
+                                StatusBadgeInline(status: request.status),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              dateFormat
+                                  .format(request.createdAt.toDate()),
+                              style: AppTextStyles.caption,
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Detail rows
+                            _buildDetailRow(Icons.person_rounded,
+                                'Visitor Name', request.visitorName),
+                            _buildDetailRow(Icons.phone_rounded,
+                                'Phone', request.visitorPhone),
+                            _buildDetailRow(Icons.category_rounded,
+                                'Purpose', request.purpose),
+                            _buildDetailRow(Icons.vpn_key_rounded,
+                                'Resident Code', request.residentCode),
+                            _buildDetailRow(
+                                Icons.schedule_rounded,
+                                'Submitted',
+                                dateFormat.format(
+                                    request.createdAt.toDate())),
                             if (request.approvedAt != null)
                               _buildDetailRow(
-                                  Icons.check_circle,
-                                  'Actioned At',
-                                  dateFormat
-                                      .format(request.approvedAt!.toDate()),
-                                  theme),
-
+                                  Icons.done_all_rounded,
+                                  'Resolved',
+                                  dateFormat.format(
+                                      request.approvedAt!.toDate())),
                             if (request.resolutionNote != null &&
                                 request.resolutionNote!.isNotEmpty)
-                              _buildDetailRow(Icons.note, 'Resolution Note',
-                                  request.resolutionNote!, theme),
+                              _buildDetailRow(Icons.note_rounded,
+                                  'Note', request.resolutionNote!),
 
                             // Action buttons for pending requests
                             if (request.isPending) ...[
-                              const Divider(height: 32),
-                              Text(
-                                'Take Action',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 24),
                               // Resolution note field
                               TextFormField(
                                 controller: noteController,
-                                decoration: const InputDecoration(
+                                style: AppTextStyles.body,
+                                decoration: InputDecoration(
                                   labelText:
                                       'Add resolution note (optional)',
-                                  prefixIcon: Icon(Icons.note_add_outlined),
+                                  prefixIcon: const Icon(
+                                      Icons.note_add_outlined,
+                                      color: AppColors.accentCyan),
+                                  filled: true,
+                                  fillColor: AppColors.surfaceElevated,
                                 ),
                                 maxLines: 2,
                               ),
                               const SizedBox(height: 16),
-                              // Approve / Reject buttons
                               Row(
                                 children: [
                                   Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () => _updateStatus(
+                                    child: GestureDetector(
+                                      onTap: () => _updateStatus(
                                         context,
                                         request.id,
                                         AppConstants.statusApproved,
                                         noteController.text.trim(),
                                       ),
-                                      icon: const Icon(Icons.check_circle),
-                                      label: const Text('Approve'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            AppTheme.approvedColor,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 14),
+                                      child: Container(
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          gradient: AppGradients.success,
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                  AppRadius.pill),
+                                        ),
+                                        child: Center(
+                                          child: Row(
+                                            mainAxisSize:
+                                                MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                  Icons.check_rounded,
+                                                  color: Colors.white,
+                                                  size: 18),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Approve',
+                                                style: GoogleFonts
+                                                    .poppins(
+                                                  fontSize: 15,
+                                                  fontWeight:
+                                                      FontWeight.w600,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () => _updateStatus(
+                                    child: GestureDetector(
+                                      onTap: () => _updateStatus(
                                         context,
                                         request.id,
                                         AppConstants.statusRejected,
                                         noteController.text.trim(),
                                       ),
-                                      icon: const Icon(Icons.cancel),
-                                      label: const Text('Reject'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            AppTheme.rejectedColor,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 14),
+                                      child: Container(
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                  AppRadius.pill),
+                                          border: Border.all(
+                                            color: AppColors.accentRed
+                                                .withOpacity(0.6),
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Row(
+                                            mainAxisSize:
+                                                MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                  Icons.close_rounded,
+                                                  color:
+                                                      AppColors.accentRed,
+                                                  size: 18),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Reject',
+                                                style: GoogleFonts
+                                                    .poppins(
+                                                  fontSize: 15,
+                                                  fontWeight:
+                                                      FontWeight.w600,
+                                                  color:
+                                                      AppColors.accentRed,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -386,47 +507,41 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
     );
 
     if (success) {
-      nav.pop(); // Close bottom sheet
+      nav.pop();
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(
             status == AppConstants.statusApproved
                 ? 'Visitor approved'
                 : 'Visitor rejected',
+            style: GoogleFonts.poppins(color: Colors.white),
           ),
           backgroundColor: status == AppConstants.statusApproved
-              ? AppTheme.approvedColor
-              : AppTheme.rejectedColor,
+              ? AppColors.accentGreen
+              : AppColors.accentRed,
         ),
       );
     }
   }
 
   /// Builds a detail row for the bottom sheet.
-  Widget _buildDetailRow(
-      IconData icon, String label, String value, ThemeData theme) {
+  Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: AppTheme.primaryColor),
+          Icon(icon, size: 16, color: AppColors.accentCyan),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade600,
-                    fontSize: 11,
-                  ),
-                ),
+                Text(label, style: AppTextStyles.caption),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                  style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -442,9 +557,9 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
   IconData _getEmptyIcon(String tab) {
     switch (tab) {
       case 'Pending':
-        return Icons.hourglass_empty;
+        return Icons.hourglass_empty_rounded;
       case 'Approved':
-        return Icons.check_circle_outline;
+        return Icons.check_circle_outline_rounded;
       case 'Rejected':
         return Icons.cancel_outlined;
       default:
@@ -477,6 +592,45 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
         return 'No visitors have been rejected.';
       default:
         return 'Visitor requests from the guard will appear here.';
+    }
+  }
+}
+
+/// Inline status badge used in bottom sheet (reuses StatusBadge logic).
+class StatusBadgeInline extends StatelessWidget {
+  final String status;
+  const StatusBadgeInline({super.key, required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = _getColor();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: GoogleFonts.poppins(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+          color: statusColor,
+        ),
+      ),
+    );
+  }
+
+  Color _getColor() {
+    switch (status) {
+      case AppConstants.statusApproved:
+        return AppColors.accentGreen;
+      case AppConstants.statusRejected:
+        return AppColors.accentRed;
+      default:
+        return AppColors.accentAmber;
     }
   }
 }
