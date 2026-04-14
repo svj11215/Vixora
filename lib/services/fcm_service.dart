@@ -10,11 +10,13 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:vixora/core/constants/app_constants.dart';
 import 'package:vixora/screens/resident/request_detail_screen.dart';
 import 'package:vixora/services/firestore_service.dart';
+import 'package:vixora/firebase_options.dart';
 
 /// Sends Firebase Cloud Messaging notifications via FCM HTTP v1 API.
 /// Uses manual JWT-based OAuth2 authentication with service account credentials.
@@ -125,8 +127,10 @@ class FcmService {
 /// Top-level background message handler — must be a top-level function.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Minimal handler: message is received but no heavy processing needed
-  // Firebase will handle showing the notification automatically when app is in background
+  // Initialize Firebase if needed (minimal handler)
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print('🔔 Background FCM message: ${message.notification?.title}');
+  print('🔔 Background data: ${message.data}');
 }
 
 /// Service for managing FCM token registration and notification handlers.
@@ -139,158 +143,132 @@ class FCMTokenService {
 
   /// Initializes FCM: requests permission, gets token, stores in Firestore.
   Future<void> initializeFCM(String uid) async {
-    // Request notification permission
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
+    try {
+      // STEP 1: Request permission FIRST before anything else
+      NotificationSettings settings = await FirebaseMessaging.instance
+          .requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+            provisional: false,
+            announcement: false,
+            carPlay: false,
+            criticalAlert: false,
+          );
 
-    // Initialize local notifications
-    await _initializeLocalNotifications();
+      print('📱 FCM Permission: ${settings.authorizationStatus}');
 
-    // Get current token and store it
-    final token = await _messaging.getToken();
-    if (token != null) {
-      await _firestoreService.updateFcmToken(uid, token);
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        print('❌ FCM notifications denied by user');
+        return;
+      }
+
+      // STEP 2: Set foreground notification presentation options
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+
+      // STEP 3: Get FCM token
+      String? token = await FirebaseMessaging.instance.getToken();
+      print('🔑 FCM Token: $token');
+
+      if (token != null) {
+        // STEP 4: Save token to Firestore
+        await _firestoreService.updateFcmToken(uid, token);
+        print('✅ FCM token saved to Firestore for uid: $uid');
+      }
+
+      // STEP 5: Listen for token refresh
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        print('🔄 FCM token refreshed: $newToken');
+        await _firestoreService.updateFcmToken(uid, newToken);
+      });
+
+      // STEP 6: Setup local notifications channel
+      await _setupLocalNotifications();
+
+      // STEP 7: Handle foreground messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print('📩 Foreground FCM received: ${message.notification?.title}');
+        _showLocalNotification(message);
+      });
+
+      print('✅ FCM initialized successfully');
+    } catch (e) {
+      print('❌ FCM init error: $e');
     }
-
-    // Listen for token refresh
-    _messaging.onTokenRefresh.listen((newToken) async {
-      await _firestoreService.updateFcmToken(uid, newToken);
-    });
-
-    // Setup handlers
-    setupForegroundHandler();
-    setupTerminatedHandler();
-    setupInteractedMessage();
   }
 
   /// Initializes flutter_local_notifications plugin with Android channel.
-  Future<void> _initializeLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+  Future<void> _setupLocalNotifications() async {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    // ↑ uses your app launcher icon
+
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
     );
-    const initSettings = InitializationSettings(android: androidSettings);
 
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap — navigation is handled by FCM's onMessageOpenedApp
+        // Handle notification tap from local notification
+        final payload = response.payload;
+        if (payload != null) {
+          print('🔔 Local notification tapped, requestId: $payload');
+          // Navigation handled by FCM handlers in home screen
+        }
       },
     );
 
-    // Create notification channel for Android
-    const androidChannel = AndroidNotificationChannel(
-      AppConstants.notificationChannelId,
-      AppConstants.notificationChannelName,
-      description: AppConstants.notificationChannelDesc,
-      importance: Importance.high,
+    // Create the notification channel — MUST match channel_id in FCM payload
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'vixora_visitors', // id — must match FCM channel_id
+      'Visitor Requests', // name
+      description: 'Notifications for new visitor requests',
+      importance: Importance.max,
       playSound: true,
       enableVibration: true,
+      showBadge: true,
     );
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >()
-        ?.createNotificationChannel(androidChannel);
-  }
+        ?.createNotificationChannel(channel);
 
-  /// Sets up the foreground message handler to display local notifications.
-  void setupForegroundHandler() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final notification = message.notification;
-      final android = message.notification?.android;
-
-      if (notification != null && android != null) {
-        _localNotifications.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              AppConstants.notificationChannelId,
-              AppConstants.notificationChannelName,
-              channelDescription: AppConstants.notificationChannelDesc,
-              importance: Importance.high,
-              priority: Priority.high,
-              icon: '@mipmap/ic_launcher',
-            ),
-          ),
-        );
-      }
-    });
-  }
-
-  /// Checks if the app was opened from a terminated state via notification.
-  Future<RemoteMessage?> setupTerminatedHandler() async {
-    final initialMessage = await _messaging.getInitialMessage();
-    return initialMessage;
-  }
-
-  /// Listens for notification taps when the app is in the background.
-  void setupInteractedMessage() {
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      // Navigation is handled by caller via context
-    });
-  }
-
-  /// Sets up all notification handlers including foreground, background, and terminated state.
-  /// Should be called after the app is fully initialized and the user is logged in.
-  Future<void> setupNotificationHandlers(BuildContext context) async {
-    // 1. Foreground messages — show local notification
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      _showLocalNotification(message);
-    });
-
-    // 2. App in background — user tapped notification
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _navigateToRequest(context, message.data['requestId']);
-    });
-
-    // 3. App was terminated — user tapped notification
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      Future.delayed(const Duration(seconds: 1), () {
-        _navigateToRequest(context, initialMessage.data['requestId']);
-      });
-    }
+    print('✅ Notification channel created: vixora_visitors');
   }
 
   /// Displays a local notification for a foreground message.
-  void _showLocalNotification(RemoteMessage message) {
+  Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     final android = message.notification?.android;
+    final requestId = message.data['requestId'] ?? '';
 
-    if (notification != null && android != null) {
-      _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            AppConstants.notificationChannelId,
-            AppConstants.notificationChannelName,
-            channelDescription: AppConstants.notificationChannelDesc,
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
+    if (notification == null) return;
+
+    await _localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'vixora_visitors', // MUST match channel id above
+          'Visitor Requests',
+          channelDescription: 'Notifications for new visitor requests',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          playSound: true,
+          enableVibration: true,
         ),
-      );
-    }
-  }
-
-  /// Navigates to the RequestDetailScreen for the given request ID.
-  void _navigateToRequest(BuildContext context, String? requestId) {
-    if (requestId == null || requestId.isEmpty) return;
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RequestDetailScreen(requestId: requestId),
       ),
+      payload: requestId, // pass requestId for navigation on tap
     );
   }
 }

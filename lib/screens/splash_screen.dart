@@ -50,7 +50,11 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _setupAnimations();
     _startSequence();
-    _checkAuth();
+
+    // Delay auth check until AFTER first frame is built to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuth();
+    });
   }
 
   void _setupAnimations() {
@@ -62,9 +66,10 @@ class _SplashScreenState extends State<SplashScreen>
     _iconScale = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _iconController, curve: Curves.elasticOut),
     );
-    _iconFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _iconController, curve: Curves.easeOut),
-    );
+    _iconFade = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _iconController, curve: Curves.easeOut));
 
     // Text: fades in + slides up 20px
     _textController = AnimationController(
@@ -74,12 +79,10 @@ class _SplashScreenState extends State<SplashScreen>
     _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
     );
-    _textSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
-    );
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
+        );
 
     // Tagline: fades in
     _taglineController = AnimationController(
@@ -194,9 +197,7 @@ class _SplashScreenState extends State<SplashScreen>
       targetScreen = const LoginScreen();
     }
 
-    Navigator.of(context).pushReplacement(
-      VixoraPageRoute(page: targetScreen),
-    );
+    Navigator.of(context).pushReplacement(VixoraPageRoute(page: targetScreen));
   }
 
   @override
@@ -220,9 +221,7 @@ class _SplashScreenState extends State<SplashScreen>
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: AppGradients.primary,
-          ),
+          decoration: const BoxDecoration(gradient: AppGradients.primary),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -284,9 +283,10 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // Loading dots
                 FadeTransition(
-                  opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                    _dotsController,
-                  ),
+                  opacity: Tween<double>(
+                    begin: 0.0,
+                    end: 1.0,
+                  ).animate(_dotsController),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -315,9 +315,10 @@ class _AnimatedDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(
-      scale: Tween<double>(begin: 1.0, end: 1.5).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-      ),
+      scale: Tween<double>(
+        begin: 1.0,
+        end: 1.5,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
       child: Container(
         width: 8,
         height: 8,

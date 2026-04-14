@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:vixora/core/constants/app_constants.dart';
 import 'package:vixora/core/utils/app_exception.dart';
 import 'package:vixora/models/user_model.dart';
@@ -66,9 +67,17 @@ class AuthProvider extends ChangeNotifier {
   ///
   /// Used on app restart from SplashScreen to restore session.
   Future<void> loadUser() async {
+    // Defer listener notification until after frame is built
+    void _notify() {
+      if (!kIsWeb)
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
+    }
+
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _notify();
 
     try {
       final user = await _authService.getCurrentUserModel();
@@ -86,7 +95,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = null;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _notify();
     }
   }
 

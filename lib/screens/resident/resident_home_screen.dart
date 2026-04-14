@@ -29,37 +29,49 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _setupNotificationTapHandlers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initFCMHandlers();
+    });
   }
 
-  /// Sets up notification tap handlers for background and cold start scenarios.
-  Future<void> _setupNotificationTapHandlers() async {
-    // Scenario A: App in background, user tapped notification
+  void _initFCMHandlers() {
+    // HANDLER 1: App in FOREGROUND — message arrives
+    // (already handled by FCMService.onMessage — no action needed here)
+
+    // HANDLER 2: App in BACKGROUND — user taps notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('🔔 onMessageOpenedApp: ${message.data}');
       final requestId = message.data['requestId'];
       if (requestId != null && requestId.isNotEmpty) {
-        _navigateToRequest(requestId);
+        _navigateToRequestDetail(requestId);
       }
     });
 
-    // Scenario B: App was terminated, user tapped notification (cold start)
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      final requestId = initialMessage.data['requestId'];
-      if (requestId != null && requestId.isNotEmpty) {
-        // Delay to allow the widget to fully build
-        Future.delayed(const Duration(seconds: 1), () {
-          _navigateToRequest(requestId);
-        });
+    // HANDLER 3: App TERMINATED — user taps notification (cold start)
+    FirebaseMessaging.instance.getInitialMessage().then((
+      RemoteMessage? message,
+    ) {
+      if (message != null) {
+        print('🔔 getInitialMessage: ${message.data}');
+        final requestId = message.data['requestId'];
+        if (requestId != null && requestId.isNotEmpty) {
+          // Delay to ensure navigation stack is ready
+          Future.delayed(const Duration(milliseconds: 1200), () {
+            if (mounted) {
+              _navigateToRequestDetail(requestId);
+            }
+          });
+        }
       }
-    }
+    });
   }
 
-  /// Navigates to RequestDetailScreen with the given request ID.
-  void _navigateToRequest(String requestId) {
-    Navigator.of(context).push(
-      VixoraPageRoute(
-        page: RequestDetailScreen(requestId: requestId),
+  void _navigateToRequestDetail(String requestId) {
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RequestDetailScreen(requestId: requestId),
       ),
     );
   }
@@ -104,8 +116,10 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                   color: AppColors.accentCyan.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.inbox_rounded,
-                    color: AppColors.accentCyan),
+                child: const Icon(
+                  Icons.inbox_rounded,
+                  color: AppColors.accentCyan,
+                ),
               ),
               label: 'Requests',
             ),
@@ -117,8 +131,10 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                   color: AppColors.accentCyan.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.person_rounded,
-                    color: AppColors.accentCyan),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: AppColors.accentCyan,
+                ),
               ),
               label: 'Profile',
             ),
