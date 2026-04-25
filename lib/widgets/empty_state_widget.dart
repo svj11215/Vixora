@@ -1,3 +1,4 @@
+// UI_REDESIGN: Empty state with VixoraColors — revert by restoring original
 /// Premium empty state widget with gradient icon container and optional action.
 library;
 
@@ -41,15 +42,23 @@ class EmptyStateWidget extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // UI_REDESIGN: Lime radial glow circle — revert to gradient circle
               Container(
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.accent,
                   shape: BoxShape.circle,
-                  boxShadow: [AppShadows.glowBlue],
+                  gradient: RadialGradient(
+                    colors: [
+                      VixoraColors.primary.withOpacity(0.2),
+                      Colors.transparent,
+                    ],
+                  ),
+                  border: Border.all(
+                    color: VixoraColors.primary.withOpacity(0.4),
+                  ),
                 ),
-                child: Icon(icon, size: 36, color: Colors.white),
+                child: Icon(icon, size: 36, color: VixoraColors.primary),
               ),
               const SizedBox(height: 20),
               Text(
@@ -61,7 +70,7 @@ class EmptyStateWidget extends StatelessWidget {
               Text(
                 subtitle,
                 style: AppTextStyles.body.copyWith(
-                  color: AppColors.textSecondary,
+                  color: VixoraColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),

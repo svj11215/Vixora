@@ -1,3 +1,4 @@
+// UI_REDESIGN: New login screen with lime+cyan palette — revert by restoring original
 /// Premium login screen with role-based sign-in buttons.
 /// ALL existing onPressed callbacks kept exactly as-is.
 library;
@@ -19,6 +20,8 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    // UI_REDESIGN: Responsive horizontal padding — revert to fixed 32
+    final hPad = (size.width * 0.044).clamp(14.0, 20.0);
 
     return Consumer<app.AuthProvider>(
       builder: (context, authProvider, _) {
@@ -28,13 +31,11 @@ class LoginScreen extends StatelessWidget {
           child: Scaffold(
             body: Stack(
               children: [
-                // Background gradient
+                // UI_REDESIGN: Background solid + subtle circles — revert to AppGradients.primary
                 Container(
                   width: double.infinity,
                   height: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: AppGradients.primary,
-                  ),
+                  color: VixoraColors.background,
                 ),
                 // Decorative circle top right
                 Positioned(
@@ -44,7 +45,7 @@ class LoginScreen extends StatelessWidget {
                     width: 300,
                     height: 300,
                     decoration: BoxDecoration(
-                      color: AppColors.accentCyan.withOpacity(0.08),
+                      color: VixoraColors.primary.withOpacity(0.04),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -57,7 +58,7 @@ class LoginScreen extends StatelessWidget {
                     width: 250,
                     height: 250,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withOpacity(0.08),
+                      color: VixoraColors.accent.withOpacity(0.04),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -65,7 +66,7 @@ class LoginScreen extends StatelessWidget {
                 // Content
                 SafeArea(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: EdgeInsets.symmetric(horizontal: hPad),
                     child: SizedBox(
                       height: size.height -
                           MediaQuery.of(context).padding.top -
@@ -75,45 +76,59 @@ class LoginScreen extends StatelessWidget {
                           const Spacer(flex: 2),
 
                           // Logo Section
+                          // UI_REDESIGN: Lime radial glow icon — revert to gradient circle
                           FadeInDown(
                             duration: const Duration(milliseconds: 500),
                             child: Column(
                               children: [
                                 Container(
-                                  width: 88,
-                                  height: 88,
+                                  width: 110,
+                                  height: 110,
                                   decoration: BoxDecoration(
-                                    gradient: AppGradients.accent,
                                     shape: BoxShape.circle,
-                                    boxShadow: [AppShadows.glowBlue],
+                                    gradient: RadialGradient(
+                                      colors: [
+                                        VixoraColors.primary.withOpacity(0.2),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: VixoraColors.primary,
+                                      width: 1.5,
+                                    ),
                                   ),
                                   child: const Icon(
                                     Icons.security_rounded,
-                                    size: 44,
-                                    color: Colors.white,
+                                    size: 48,
+                                    color: VixoraColors.primary,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
                                 Text(
                                   'VIXORA',
-                                  style: AppTextStyles.display.copyWith(
-                                    color: Colors.white,
-                                    letterSpacing: 8,
+                                  style: GoogleFonts.dmSans(
                                     fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: VixoraColors.primary,
+                                    letterSpacing: 8,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Container(
                                   width: 40,
                                   height: 2,
-                                  color: AppColors.accentCyan,
+                                  color: VixoraColors.accent,
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
                                   'Visitor Management System',
-                                  style: AppTextStyles.subtitle.copyWith(
-                                    color: AppColors.textSecondary,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: VixoraColors.textSecondary,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ],
                             ),
@@ -122,6 +137,7 @@ class LoginScreen extends StatelessWidget {
                           const Spacer(flex: 2),
 
                           // Buttons Section
+                          // UI_REDESIGN: GlassCard role selector + VixoraButton — revert to _RoleButton
                           Column(
                             children: [
                               FadeInUp(
@@ -129,9 +145,14 @@ class LoginScreen extends StatelessWidget {
                                 duration: const Duration(milliseconds: 400),
                                 child: Text(
                                   'CHOOSE YOUR ROLE',
-                                  style: AppTextStyles.label.copyWith(
-                                    color: AppColors.textTertiary,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 2,
+                                    color: VixoraColors.textHint,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -142,7 +163,6 @@ class LoginScreen extends StatelessWidget {
                                   icon: Icons.security_rounded,
                                   label: 'Security Guard',
                                   subtitle: 'Submit visitor requests',
-                                  gradient: AppGradients.accent,
                                   onPressed: () =>
                                       _handleSignIn(context, isGuard: true),
                                 ),
@@ -155,7 +175,6 @@ class LoginScreen extends StatelessWidget {
                                   icon: Icons.home_rounded,
                                   label: 'Resident',
                                   subtitle: 'Approve visitor requests',
-                                  gradient: AppGradients.success,
                                   onPressed: () =>
                                       _handleSignIn(context, isGuard: false),
                                 ),
@@ -169,13 +188,16 @@ class LoginScreen extends StatelessWidget {
                                   children: [
                                     Icon(Icons.lock_rounded,
                                         size: 12,
-                                        color: AppColors.textTertiary),
+                                        color: VixoraColors.textHint),
                                     const SizedBox(width: 6),
                                     Text(
                                       'Secured by Firebase',
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: AppColors.textTertiary,
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 12,
+                                        color: VixoraColors.textHint,
                                       ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
                                   ],
                                 ),
@@ -187,28 +209,32 @@ class LoginScreen extends StatelessWidget {
 
                           // Error display
                           if (authProvider.error != null)
+                            // UI_REDESIGN: Error card with new colors — revert to AppColors.accentRed
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppColors.accentRed.withOpacity(0.1),
+                                color: VixoraColors.rejected.withOpacity(0.1),
                                 borderRadius:
                                     BorderRadius.circular(AppRadius.medium),
                                 border: Border.all(
-                                  color: AppColors.accentRed.withOpacity(0.3),
+                                  color:
+                                      VixoraColors.rejected.withOpacity(0.3),
                                 ),
                               ),
                               child: Row(
                                 children: [
                                   const Icon(Icons.error_outline,
-                                      color: AppColors.accentRed, size: 20),
+                                      color: VixoraColors.rejected, size: 20),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       authProvider.error!,
-                                      style: GoogleFonts.poppins(
-                                        color: AppColors.accentRed,
+                                      style: GoogleFonts.dmSans(
+                                        color: VixoraColors.rejected,
                                         fontSize: 13,
                                       ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
                                     ),
                                   ),
                                 ],
@@ -258,19 +284,17 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-/// Private role button widget with scale press animation.
+/// UI_REDESIGN: Role button with VixoraColors surface card style — revert to gradient button
 class _RoleButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final String subtitle;
-  final Gradient gradient;
   final VoidCallback onPressed;
 
   const _RoleButton({
     required this.icon,
     required this.label,
     required this.subtitle,
-    required this.gradient,
     required this.onPressed,
   });
 
@@ -295,9 +319,9 @@ class _RoleButtonState extends State<_RoleButton> {
           width: double.infinity,
           height: 72,
           decoration: BoxDecoration(
-            gradient: widget.gradient,
+            color: VixoraColors.surface,
             borderRadius: BorderRadius.circular(AppRadius.large),
-            boxShadow: [AppShadows.cardShadow],
+            border: Border.all(color: VixoraColors.border),
           ),
           child: Row(
             children: [
@@ -306,36 +330,41 @@ class _RoleButtonState extends State<_RoleButton> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: VixoraColors.primary.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(widget.icon, size: 20, color: Colors.white),
+                child: Icon(widget.icon, size: 20, color: VixoraColors.primary),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.label,
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.label,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: VixoraColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                  ),
-                  Text(
-                    widget.subtitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.7),
+                    Text(
+                      widget.subtitle,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        color: VixoraColors.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const Spacer(),
               Icon(Icons.arrow_forward_ios_rounded,
-                  size: 16, color: Colors.white.withOpacity(0.5)),
+                  size: 16, color: VixoraColors.textHint),
               const SizedBox(width: 16),
             ],
           ),

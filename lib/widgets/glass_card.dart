@@ -1,3 +1,4 @@
+// UI_REDESIGN: Glass card with VixoraColors — revert by restoring original
 /// Glassmorphism card widget for premium surface styling.
 library;
 
@@ -24,14 +25,15 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        // UI_REDESIGN: VixoraColors.surface solid + subtle gradient — revert to AppGradients.card
         gradient: gradient ?? AppGradients.card,
         borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.large),
         border: border ??
             Border.all(
-              color: AppColors.surfaceBorder,
+              // UI_REDESIGN: VixoraColors.border — revert to AppColors.surfaceBorder
+              color: VixoraColors.border,
               width: 1,
             ),
-        boxShadow: [AppShadows.cardShadow],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius ?? AppRadius.large),

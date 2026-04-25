@@ -1,3 +1,4 @@
+// UI_REDESIGN: Add visitor screen with VixoraColors palette — revert by restoring original
 /// Premium screen for guards to submit a new visitor request.
 /// ALL form submission, validation, and layout logic kept AS-IS.
 library;
@@ -50,10 +51,15 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
           isLoading: provider.isSubmitting,
           message: 'Submitting request...',
           child: Scaffold(
+            // UI_REDESIGN: VixoraColors.background scaffold — revert to default
+            backgroundColor: VixoraColors.background,
             appBar: AppBar(
+              backgroundColor: VixoraColors.background,
               title: Row(
                 children: [
-                  const Icon(Icons.person_add_rounded, color: AppColors.accentCyan),
+                  // UI_REDESIGN: Primary icon — revert to AppColors.accentCyan
+                  const Icon(Icons.person_add_rounded,
+                      color: VixoraColors.primary),
                   const SizedBox(width: 8),
                   Text('New Request', style: AppTextStyles.title),
                 ],
@@ -62,7 +68,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(1),
                 child: Container(
-                  color: AppColors.surfaceBorder,
+                  color: VixoraColors.border,
                   height: 1,
                 ),
               ),
@@ -75,40 +81,54 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Header Area
+                    // UI_REDESIGN: Surface card header — revert to gradient GlassCard
                     FadeInDown(
                       duration: const Duration(milliseconds: 400),
-                      child: GlassCard(
-                        gradient: AppGradients.accent,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: VixoraColors.surface,
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.large),
+                          border:
+                              Border.all(color: VixoraColors.borderGlow),
+                        ),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color:
+                                    VixoraColors.primary.withOpacity(0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.shield_rounded,
-                                  color: Colors.white, size: 28),
+                                  color: VixoraColors.primary, size: 28),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'Create Entry Request',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
+                                    style: GoogleFonts.dmSans(
+                                      color: VixoraColors.textPrimary,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                   Text(
                                     'Fill the details to notify resident',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white.withOpacity(0.8),
+                                    style: GoogleFonts.dmSans(
+                                      color: VixoraColors.textSecondary,
                                       fontSize: 12,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                 ],
                               ),
@@ -120,13 +140,11 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // Section: Visitor Details
+                    // UI_REDESIGN: Section header with lime bar — revert to icon+text row
                     FadeInUp(
                       delay: const Duration(milliseconds: 100),
                       duration: const Duration(milliseconds: 400),
-                      child: _buildSectionHeader(
-                        Icons.contact_mail_rounded,
-                        'Visitor Details',
-                      ),
+                      child: _buildSectionHeader('Visitor Details'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     FadeInUp(
@@ -143,7 +161,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                                 labelText: 'Visitor Name',
                                 prefixIcon: Icon(Icons.person_outline),
                               ),
-                              textCapitalization: TextCapitalization.words,
+                              textCapitalization:
+                                  TextCapitalization.words,
                               validator: Validators.validateVisitorName,
                             ),
                             const SizedBox(height: 16),
@@ -167,10 +186,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                     FadeInUp(
                       delay: const Duration(milliseconds: 200),
                       duration: const Duration(milliseconds: 400),
-                      child: _buildSectionHeader(
-                        Icons.info_outline_rounded,
-                        'Visit Information',
-                      ),
+                      child: _buildSectionHeader('Visit Information'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     FadeInUp(
@@ -183,12 +199,14 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                             DropdownButtonFormField<String>(
                               value: _selectedPurpose,
                               style: AppTextStyles.body,
-                              dropdownColor: AppColors.surfaceElevated,
-                              icon: const Icon(Icons.arrow_drop_down_rounded,
-                                  color: AppColors.textSecondary),
+                              dropdownColor: VixoraColors.surfaceHigh,
+                              icon: const Icon(
+                                  Icons.arrow_drop_down_rounded,
+                                  color: VixoraColors.textSecondary),
                               decoration: const InputDecoration(
                                 labelText: 'Purpose of Visit',
-                                prefixIcon: Icon(Icons.category_outlined),
+                                prefixIcon:
+                                    Icon(Icons.category_outlined),
                               ),
                               items: AppConstants.visitPurposes
                                   .map((purpose) => DropdownMenuItem(
@@ -196,8 +214,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                                         child: Text(purpose),
                                       ))
                                   .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _selectedPurpose = value),
+                              onChanged: (value) => setState(
+                                  () => _selectedPurpose = value),
                               validator: Validators.validatePurpose,
                             ),
                             const SizedBox(height: 16),
@@ -206,12 +224,14 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                               style: AppTextStyles.body,
                               decoration: const InputDecoration(
                                 labelText: 'Resident Code',
-                                prefixIcon: Icon(Icons.vpn_key_outlined),
+                                prefixIcon:
+                                    Icon(Icons.vpn_key_outlined),
                                 hintText: '4-digit code',
                               ),
                               keyboardType: TextInputType.number,
                               maxLength: 4,
-                              validator: Validators.validateResidentCode,
+                              validator:
+                                  Validators.validateResidentCode,
                             ),
                           ],
                         ),
@@ -223,10 +243,7 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                     FadeInUp(
                       delay: const Duration(milliseconds: 300),
                       duration: const Duration(milliseconds: 400),
-                      child: _buildSectionHeader(
-                        Icons.camera_alt_rounded,
-                        'Visitor Photo *',
-                      ),
+                      child: _buildSectionHeader('Visitor Photo *'),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     FadeInUp(
@@ -246,24 +263,30 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.accentRed.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(AppRadius.medium),
+                          color:
+                              VixoraColors.rejected.withOpacity(0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.medium),
                           border: Border.all(
-                            color: AppColors.accentRed.withOpacity(0.3),
+                            color:
+                                VixoraColors.rejected.withOpacity(0.3),
                           ),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.error_outline,
-                                color: AppColors.accentRed, size: 20),
+                                color: VixoraColors.rejected,
+                                size: 20),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 provider.submitError!,
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.accentRed,
+                                style: GoogleFonts.dmSans(
+                                  color: VixoraColors.rejected,
                                   fontSize: 13,
                                 ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 3,
                               ),
                             ),
                           ],
@@ -279,7 +302,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
                       child: AppButton(
                         label: 'Submit Request',
                         icon: Icons.send_rounded,
-                        isLoading: _isUploadingImage || provider.isSubmitting,
+                        isLoading:
+                            _isUploadingImage || provider.isSubmitting,
                         onPressed: _submitRequest,
                       ),
                     ),
@@ -294,17 +318,29 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     );
   }
 
-  Widget _buildSectionHeader(IconData icon, String title) {
+  // UI_REDESIGN: Section header with lime accent bar — revert to icon+text Row
+  Widget _buildSectionHeader(String title) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppColors.accentCyan),
+        Container(
+          width: 3,
+          height: 18,
+          decoration: BoxDecoration(
+            color: VixoraColors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        Flexible(
+          child: Text(
+            title,
+            style: GoogleFonts.dmSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: VixoraColors.textPrimary,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
@@ -345,15 +381,9 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_uploadedImageUrl == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please take or select a visitor photo',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          backgroundColor: AppColors.accentRed,
-        ),
-      );
+      // UI_REDESIGN: VixoraSnack — revert to ScaffoldMessenger.showSnackBar
+      VixoraSnack.show(context, 'Please take or select a visitor photo',
+          error: true);
       return;
     }
 
@@ -367,15 +397,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     final resident = await provider.lookupResidentByCode(code);
     if (resident == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'No resident found with this code',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-            backgroundColor: AppColors.accentRed,
-          ),
-        );
+        VixoraSnack.show(context, 'No resident found with this code',
+            error: true);
       }
       return;
     }
@@ -391,17 +414,8 @@ class _AddVisitorScreenState extends State<AddVisitorScreen> {
     );
 
     if (success && mounted) {
-      final messenger = ScaffoldMessenger.of(context);
       _resetForm();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            'Request submitted successfully',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          backgroundColor: AppColors.accentGreen,
-        ),
-      );
+      VixoraSnack.show(context, 'Request submitted successfully');
     }
   }
 

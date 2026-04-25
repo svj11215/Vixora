@@ -1,3 +1,4 @@
+// UI_REDESIGN: Request detail screen with VixoraColors palette — revert by restoring original
 /// Request detail screen with SliverAppBar and premium layout.
 /// ALL existing logic, provider calls, navigation kept AS-IS.
 library;
@@ -5,11 +6,11 @@ library;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:vixora/core/constants/app_constants.dart';
 import 'package:vixora/core/theme/app_theme.dart';
 import 'package:vixora/models/visitor_request_model.dart';
-import 'package:vixora/widgets/app_button.dart';
+
 import 'package:vixora/widgets/glass_card.dart';
 import 'package:vixora/widgets/status_badge.dart';
 
@@ -40,8 +41,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sh = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      backgroundColor: AppColors.surfaceDarker,
+      // UI_REDESIGN: VixoraColors.background — revert to AppColors.surfaceDarker
+      backgroundColor: VixoraColors.background,
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection(AppConstants.visitorRequestsCollection)
@@ -50,7 +54,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: AppColors.accentCyan),
+              // UI_REDESIGN: Accent spinner — revert to AppColors.accentCyan
+              child: CircularProgressIndicator(color: VixoraColors.accent),
             );
           }
 
@@ -59,8 +64,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
               child: Text(
                 'Request not found',
                 style: AppTextStyles.body.copyWith(
-                  color: AppColors.textSecondary,
+                  color: VixoraColors.textSecondary,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             );
           }
@@ -75,10 +82,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
           return CustomScrollView(
             slivers: [
               // Sliver App Bar with hero image
+              // UI_REDESIGN: Rounded bottom clip on hero — revert to default
               SliverAppBar(
-                expandedHeight: 280,
+                expandedHeight: sh * 0.32,
                 pinned: true,
-                backgroundColor: AppColors.surfaceDarker,
+                backgroundColor: VixoraColors.background,
                 leading: Padding(
                   padding: const EdgeInsets.all(8),
                   child: CircleAvatar(
@@ -95,32 +103,38 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     fit: StackFit.expand,
                     children: [
                       if (requestModel.imageUrl.isNotEmpty)
-                        CachedNetworkImage(
-                          imageUrl: requestModel.imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
-                            color: AppColors.surfaceElevated,
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.accentCyan,
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                          ),
+                          child: CachedNetworkImage(
+                            imageUrl: requestModel.imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(
+                              color: VixoraColors.surfaceHigh,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: VixoraColors.accent,
+                                ),
                               ),
                             ),
-                          ),
-                          errorWidget: (_, __, ___) => Container(
-                            color: AppColors.surfaceElevated,
-                            child: const Icon(
-                              Icons.broken_image_rounded,
-                              color: AppColors.textTertiary,
-                              size: 60,
+                            errorWidget: (_, __, ___) => Container(
+                              color: VixoraColors.surfaceHigh,
+                              child: const Icon(
+                                Icons.broken_image_rounded,
+                                color: VixoraColors.textHint,
+                                size: 60,
+                              ),
                             ),
                           ),
                         )
                       else
                         Container(
-                          color: AppColors.surfaceElevated,
+                          color: VixoraColors.surfaceHigh,
                           child: const Icon(
                             Icons.image_not_supported_rounded,
-                            color: AppColors.textTertiary,
+                            color: VixoraColors.textHint,
                             size: 60,
                           ),
                         ),
@@ -128,12 +142,16 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       Positioned.fill(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(24),
+                              bottomRight: Radius.circular(24),
+                            ),
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                AppColors.surfaceDarker,
+                                VixoraColors.background,
                               ],
                             ),
                           ),
@@ -161,6 +179,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             child: Text(
                               requestModel.visitorName,
                               style: AppTextStyles.headline,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                           StatusBadge(status: status),
@@ -170,6 +190,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       Text(
                         _formatTimestamp(requestModel.createdAt),
                         style: AppTextStyles.caption,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                       const SizedBox(height: AppSpacing.lg),
 
@@ -251,51 +273,43 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                 'Add a note about your decision...',
                             prefixIcon: const Icon(
                               Icons.note_add_outlined,
-                              color: AppColors.accentCyan,
+                              color: VixoraColors.accent,
                             ),
                             filled: true,
-                            fillColor: AppColors.surfaceElevated,
+                            fillColor: VixoraColors.surfaceHigh,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.md),
-                        AppButton(
-                          label: 'Approve Entry',
-                          gradient: AppGradients.success,
-                          icon: Icons.check_rounded,
-                          width: double.infinity,
-                          onPressed: () => _updateStatus(
-                            context,
-                            widget.requestId,
-                            AppConstants.statusApproved,
-                            requestModel.residentId,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                                color: AppColors.accentRed),
-                            minimumSize:
-                                const Size(double.infinity, 52),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppRadius.medium),
+                        // UI_REDESIGN: Row of approve/reject VixoraButtons — revert to AppButton + OutlinedButton
+                        Row(
+                          children: [
+                            Expanded(
+                              child: VixoraButton(
+                                label: 'Approve',
+                                icon: Icons.check_rounded,
+                                color: VixoraColors.approved,
+                                onPressed: () => _updateStatus(
+                                  context,
+                                  widget.requestId,
+                                  AppConstants.statusApproved,
+                                  requestModel.residentId,
+                                ),
+                              ),
                             ),
-                          ),
-                          icon: const Icon(Icons.close_rounded,
-                              color: AppColors.accentRed),
-                          label: Text(
-                            'Reject',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.accentRed,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: VixoraButton(
+                                label: 'Reject',
+                                icon: Icons.close_rounded,
+                                color: VixoraColors.rejected,
+                                onPressed: () => _showRejectSheet(
+                                  context,
+                                  widget.requestId,
+                                  requestModel.residentId,
+                                ),
+                              ),
                             ),
-                          ),
-                          onPressed: () => _showRejectSheet(
-                            context,
-                            widget.requestId,
-                            requestModel.residentId,
-                          ),
+                          ],
                         ),
                       ],
 
@@ -316,7 +330,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final noteController = TextEditingController();
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: VixoraColors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -336,7 +350,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.textTertiary.withOpacity(0.3),
+                  color: VixoraColors.textHint.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
               ),
@@ -346,23 +360,24 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
               Text(
                 'Optional — let guard know why',
                 style: AppTextStyles.caption,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: noteController,
                 style: AppTextStyles.body,
                 maxLines: 3,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'e.g. Not expected today',
                   filled: true,
-                  fillColor: AppColors.surfaceElevated,
+                  fillColor: VixoraColors.surfaceHigh,
                 ),
               ),
               const SizedBox(height: 16),
-              AppButton(
+              VixoraButton(
                 label: 'Confirm Rejection',
-                gradient: AppGradients.danger,
-                width: double.infinity,
+                color: VixoraColors.rejected,
                 onPressed: () {
                   Navigator.pop(context);
                   _updateStatus(
@@ -412,37 +427,24 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
           });
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Request ${newStatus.toLowerCase()}',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-            backgroundColor: newStatus == AppConstants.statusApproved
-                ? AppColors.accentGreen
-                : AppColors.accentRed,
-            duration: const Duration(seconds: 2),
-          ),
+        // UI_REDESIGN: VixoraSnack — revert to ScaffoldMessenger.showSnackBar
+        VixoraSnack.show(
+          context,
+          'Request ${newStatus.toLowerCase()}',
+          error: newStatus == AppConstants.statusRejected,
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error updating request: $e',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-            backgroundColor: AppColors.accentRed,
-          ),
-        );
+        VixoraSnack.show(context, 'Error updating request: $e', error: true);
       }
     }
   }
 }
 
 /// Section wrapper with title and glass card children.
+// UI_REDESIGN: Section header with lime accent bar — revert to plain text
 class _DetailSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
@@ -458,14 +460,31 @@ class _DetailSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: AppTextStyles.subtitle.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 3,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: VixoraColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.subtitle.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
-          Divider(color: AppColors.surfaceBorder),
+          Divider(color: VixoraColors.border),
           const SizedBox(height: 4),
           ...children,
         ],
@@ -475,6 +494,7 @@ class _DetailSection extends StatelessWidget {
 }
 
 /// Detail row with icon, label, and value.
+// UI_REDESIGN: Accent icon color — revert to AppColors.accentCyan
 class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -493,19 +513,22 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: AppColors.accentCyan),
+          Icon(icon, size: 18, color: VixoraColors.accent),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: AppTextStyles.caption),
+                Text(label,
+                    style: AppTextStyles.caption.copyWith(fontSize: 11)),
                 const SizedBox(height: 2),
                 Text(
                   value,
                   style: AppTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
                 ),
               ],
             ),

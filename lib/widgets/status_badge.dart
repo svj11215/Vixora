@@ -1,3 +1,4 @@
+// UI_REDESIGN: Status badge with VixoraColors — revert by restoring original
 /// Premium status badge with soft glow and icon.
 library;
 
@@ -35,9 +36,10 @@ class StatusBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             statusLabel.toUpperCase(),
-            style: GoogleFonts.poppins(
+            // UI_REDESIGN: DM Sans font — revert to GoogleFonts.poppins
+            style: GoogleFonts.dmSans(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               letterSpacing: 1.2,
               color: statusColor,
             ),
@@ -50,12 +52,13 @@ class StatusBadge extends StatelessWidget {
   Color _getStatusColor() {
     switch (status) {
       case AppConstants.statusApproved:
-        return AppColors.accentGreen;
+        // UI_REDESIGN: VixoraColors.approved — revert to AppColors.accentGreen
+        return VixoraColors.approved;
       case AppConstants.statusRejected:
-        return AppColors.accentRed;
+        return VixoraColors.rejected;
       case AppConstants.statusPending:
       default:
-        return AppColors.accentAmber;
+        return VixoraColors.pending;
     }
   }
 

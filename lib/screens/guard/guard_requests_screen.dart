@@ -1,3 +1,4 @@
+// UI_REDESIGN: Guard requests screen with VixoraColors palette — revert by restoring original
 /// Premium screen showing all visitor requests submitted by the guard.
 /// ALL stream builders, deletion logic, and filtering logic kept AS-IS.
 library;
@@ -40,12 +41,14 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
     final provider = context.read<VisitorRequestProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceDarker,
+      // UI_REDESIGN: VixoraColors.background — revert to AppColors.surfaceDarker
+      backgroundColor: VixoraColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceDarker,
+        backgroundColor: VixoraColors.background,
         title: Row(
           children: [
-            const Icon(Icons.list_alt_rounded, color: AppColors.accentCyan),
+            // UI_REDESIGN: Primary icon — revert to AppColors.accentCyan
+            const Icon(Icons.list_alt_rounded, color: VixoraColors.primary),
             const SizedBox(width: 8),
             Text('My Requests', style: AppTextStyles.title),
           ],
@@ -53,7 +56,8 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
+            icon: const Icon(Icons.logout_rounded,
+                color: VixoraColors.textSecondary),
             tooltip: 'Sign Out',
             onPressed: () => _signOut(context),
           ),
@@ -62,7 +66,7 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.surfaceBorder,
+            color: VixoraColors.border,
             height: 1,
           ),
         ),
@@ -86,8 +90,10 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                     child: Text(
                       'Error: ${snapshot.error}',
                       style: AppTextStyles.body.copyWith(
-                        color: AppColors.accentRed,
+                        color: VixoraColors.rejected,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
                     ),
                   );
                 }
@@ -99,15 +105,18 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                   return const EmptyStateWidget(
                     icon: Icons.history_rounded,
                     title: 'No Requests Found',
-                    subtitle: 'Visitor requests you submit will appear here.',
+                    subtitle:
+                        'Visitor requests you submit will appear here.',
                   );
                 }
 
                 return RefreshIndicator(
-                  color: AppColors.accentCyan,
-                  backgroundColor: AppColors.surfaceDark,
+                  // UI_REDESIGN: Primary refresh — revert to AppColors.accentCyan
+                  color: VixoraColors.primary,
+                  backgroundColor: VixoraColors.surface,
                   onRefresh: () async {
-                    await Future.delayed(const Duration(milliseconds: 500));
+                    await Future.delayed(
+                        const Duration(milliseconds: 500));
                   },
                   child: ListView.separated(
                     padding: const EdgeInsets.only(
@@ -115,7 +124,8 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                       bottom: AppSpacing.xl,
                     ),
                     itemCount: filteredRequests.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: AppSpacing.md),
                     itemBuilder: (context, index) {
                       final request = filteredRequests[index];
                       final delay = (index * 50).clamp(0, 200);
@@ -124,7 +134,8 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                         duration: const Duration(milliseconds: 400),
                         child: VisitorRequestCard(
                           request: request,
-                          onTap: () => _showDetailSheet(context, request),
+                          onTap: () =>
+                              _showDetailSheet(context, request),
                         ),
                       );
                     },
@@ -139,11 +150,13 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
   }
 
   /// Builds the custom animated premium filter chips.
+  // UI_REDESIGN: Lime active chip — revert to AppColors.accentCyan
   Widget _buildDateFilterBar() {
     final options = ['Today', 'This Week', 'All'];
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         children: options.map((label) {
           final isSelected = _dateFilter == label;
@@ -153,21 +166,29 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
               onTap: () => setState(() => _dateFilter = label),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.accentCyan.withOpacity(0.15) : AppColors.surfaceElevated,
+                  color: isSelected
+                      ? VixoraColors.primary.withOpacity(0.15)
+                      : VixoraColors.surface,
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                   border: Border.all(
-                    color: isSelected ? AppColors.accentCyan : AppColors.surfaceBorder,
+                    color: isSelected
+                        ? VixoraColors.primary
+                        : VixoraColors.border,
                     width: 1,
                   ),
                 ),
                 child: Text(
                   label,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.dmSans(
                     fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? AppColors.accentCyan : AppColors.textSecondary,
+                    fontWeight:
+                        isSelected ? FontWeight.w700 : FontWeight.w400,
+                    color: isSelected
+                        ? VixoraColors.primary
+                        : VixoraColors.textSecondary,
                   ),
                 ),
               ),
@@ -179,7 +200,8 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
   }
 
   /// Filters requests by the selected date range.
-  List<VisitorRequestModel> _filterByDate(List<VisitorRequestModel> requests) {
+  List<VisitorRequestModel> _filterByDate(
+      List<VisitorRequestModel> requests) {
     final now = DateTime.now();
     switch (_dateFilter) {
       case 'Today':
@@ -190,9 +212,10 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
               date.day == now.day;
         }).toList();
       case 'This Week':
-        final weekStart = now.subtract(Duration(days: now.weekday - 1));
-        final startOfWeek =
-            DateTime(weekStart.year, weekStart.month, weekStart.day);
+        final weekStart =
+            now.subtract(Duration(days: now.weekday - 1));
+        final startOfWeek = DateTime(
+            weekStart.year, weekStart.month, weekStart.day);
         return requests.where((r) {
           return r.createdAt.toDate().isAfter(startOfWeek);
         }).toList();
@@ -202,15 +225,18 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
   }
 
   /// Shows a premium bottom sheet with full request details.
-  void _showDetailSheet(BuildContext context, VisitorRequestModel request) {
+  void _showDetailSheet(
+      BuildContext context, VisitorRequestModel request) {
     final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surfaceDark,
+      // UI_REDESIGN: VixoraColors.surface — revert to AppColors.surfaceDark
+      backgroundColor: VixoraColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xlarge)),
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xlarge)),
       ),
       builder: (context) {
         return DraggableScrollableSheet(
@@ -231,8 +257,10 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.textTertiary.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        color:
+                            VixoraColors.textHint.withOpacity(0.3),
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.pill),
                       ),
                     ),
                   ),
@@ -261,32 +289,33 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                                 placeholder: (_, __) => Container(
                                   width: 140,
                                   height: 140,
-                                  color: AppColors.surfaceElevated,
+                                  color: VixoraColors.surfaceHigh,
                                   child: const Center(
                                     child: CircularProgressIndicator(
-                                      color: AppColors.accentCyan,
+                                      color: VixoraColors.accent,
                                     ),
                                   ),
                                 ),
-                                errorWidget: (_, __, ___) => Container(
+                                errorWidget: (_, __, ___) =>
+                                    Container(
                                   width: 140,
                                   height: 140,
-                                  color: AppColors.surfaceElevated,
+                                  color: VixoraColors.surfaceHigh,
                                   child: const Icon(
                                     Icons.broken_image_rounded,
                                     size: 40,
-                                    color: AppColors.textTertiary,
+                                    color: VixoraColors.textHint,
                                   ),
                                 ),
                               )
                             : Container(
                                 width: 140,
                                 height: 140,
-                                color: AppColors.surfaceElevated,
+                                color: VixoraColors.surfaceHigh,
                                 child: const Icon(
                                   Icons.person_rounded,
                                   size: 40,
-                                  color: AppColors.textTertiary,
+                                  color: VixoraColors.textHint,
                                 ),
                               ),
                       ),
@@ -299,35 +328,43 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Details List
-                  _buildDetailRow(Icons.person_outline_rounded, 'Visitor Name', request.visitorName),
-                  _buildDetailRow(Icons.phone_outlined, 'Phone', request.visitorPhone),
-                  _buildDetailRow(Icons.category_outlined, 'Purpose', request.purpose),
-                  _buildDetailRow(Icons.vpn_key_outlined, 'Resident Code', request.residentCode),
-                  _buildDetailRow(Icons.access_time_rounded, 'Created', dateFormat.format(request.createdAt.toDate())),
-                  
+                  // UI_REDESIGN: Accent icon — revert to AppColors.accentCyan
+                  _buildDetailRow(Icons.person_outline_rounded,
+                      'Visitor Name', request.visitorName),
+                  _buildDetailRow(Icons.phone_outlined, 'Phone',
+                      request.visitorPhone),
+                  _buildDetailRow(Icons.category_outlined, 'Purpose',
+                      request.purpose),
+                  _buildDetailRow(Icons.vpn_key_outlined,
+                      'Resident Code', request.residentCode),
+                  _buildDetailRow(
+                      Icons.access_time_rounded,
+                      'Created',
+                      dateFormat
+                          .format(request.createdAt.toDate())),
+
                   if (request.approvedAt != null)
-                    _buildDetailRow(Icons.check_circle_outline_rounded, 'Actioned At', dateFormat.format(request.approvedAt!.toDate())),
-                  if (request.resolutionNote != null && request.resolutionNote!.isNotEmpty)
-                    _buildDetailRow(Icons.note_outlined, 'Resolution Note', request.resolutionNote!),
+                    _buildDetailRow(
+                        Icons.check_circle_outline_rounded,
+                        'Actioned At',
+                        dateFormat.format(
+                            request.approvedAt!.toDate())),
+                  if (request.resolutionNote != null &&
+                      request.resolutionNote!.isNotEmpty)
+                    _buildDetailRow(Icons.note_outlined,
+                        'Resolution Note', request.resolutionNote!),
 
                   // Delete button for pending requests
                   if (request.isPending) ...[
                     const SizedBox(height: AppSpacing.xl),
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _confirmDelete(context, request.id),
-                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.accentRed),
-                        label: Text(
-                          'Delete Request',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.accentRed,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: AppColors.accentRed.withOpacity(0.5)),
-                        ),
+                      child: VixoraButton(
+                        label: 'Delete Request',
+                        icon: Icons.delete_outline_rounded,
+                        color: VixoraColors.rejected,
+                        onPressed: () =>
+                            _confirmDelete(context, request.id),
                       ),
                     ),
                   ],
@@ -341,13 +378,14 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
   }
 
   /// Builds a detail row for the bottom sheet.
-  Widget _buildDetailRow(IconData icon, String label, String value) {
+  Widget _buildDetailRow(
+      IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: AppColors.accentCyan),
+          Icon(icon, size: 20, color: VixoraColors.accent),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -365,6 +403,8 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 3,
                 ),
               ],
             ),
@@ -382,6 +422,8 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        // UI_REDESIGN: VixoraColors dialog — revert to default AlertDialog theme
+        backgroundColor: VixoraColors.surface,
         title: Text('Delete Request', style: AppTextStyles.title),
         content: Text(
           'Are you sure you want to delete this visitor request? This action cannot be undone.',
@@ -392,9 +434,9 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
               'Cancel',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.dmSans(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                color: VixoraColors.textSecondary,
               ),
             ),
           ),
@@ -402,23 +444,26 @@ class _GuardRequestsScreenState extends State<GuardRequestsScreen> {
             onPressed: () async {
               Navigator.of(ctx).pop();
               nav.pop(); // Close bottom sheet
-              final provider = context.read<VisitorRequestProvider>();
-              final success = await provider.deleteRequest(requestId);
+              final provider =
+                  context.read<VisitorRequestProvider>();
+              final success =
+                  await provider.deleteRequest(requestId);
               if (success) {
                 // Not perfectly safe inside async gap but fine for this scope
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text(
                       'Request deleted permanently',
-                      style: GoogleFonts.poppins(color: Colors.white),
+                      style: GoogleFonts.dmSans(
+                          color: Colors.white),
                     ),
-                    backgroundColor: AppColors.accentRed,
+                    backgroundColor: VixoraColors.rejected,
                   ),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accentRed,
+              backgroundColor: VixoraColors.rejected,
             ),
             child: const Text('Delete'),
           ),

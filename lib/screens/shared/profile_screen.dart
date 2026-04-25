@@ -1,3 +1,4 @@
+// UI_REDESIGN: Profile screen with VixoraColors palette — revert by restoring original
 /// Premium profile screen with glass cards and animated editing state.
 /// Contains editable name and read-only auth/resident fields.
 /// ALL ProfileProvider and AuthProvider logic preserved AS-IS.
@@ -58,11 +59,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceDarker,
+      // UI_REDESIGN: VixoraColors.background — revert to AppColors.surfaceDarker
+      backgroundColor: VixoraColors.background,
       appBar: AppBar(
+        backgroundColor: VixoraColors.background,
         title: Row(
           children: [
-            const Icon(Icons.person_rounded, color: AppColors.accentCyan),
+            // UI_REDESIGN: Primary-colored icon — revert to AppColors.accentCyan
+            const Icon(Icons.person_rounded, color: VixoraColors.primary),
             const SizedBox(width: 8),
             Text('My Profile', style: AppTextStyles.title),
           ],
@@ -72,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           IconButton(
             icon: Icon(
               _isEditing ? Icons.close_rounded : Icons.edit_rounded,
-              color: AppColors.textPrimary,
+              color: VixoraColors.textPrimary,
             ),
             tooltip: _isEditing ? 'Cancel Edit' : 'Edit Profile',
             onPressed: () {
@@ -90,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.surfaceBorder,
+            color: VixoraColors.border,
             height: 1,
           ),
         ),
@@ -105,49 +109,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   const SizedBox(height: AppSpacing.md),
                   // Avatar Header
+                  // UI_REDESIGN: Lime initials avatar — revert to gradient circle
                   FadeInDown(
                     duration: const Duration(milliseconds: 400),
                     child: Center(
                       child: Column(
                         children: [
-                          Container(
-                            width: 110,
-                            height: 110,
-                            decoration: BoxDecoration(
-                              gradient: AppGradients.accent,
-                              shape: BoxShape.circle,
-                              boxShadow: [AppShadows.glowBlue],
-                              border: Border.all(
-                                color: AppColors.surfaceDark,
-                                width: 4,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _getInitials(currentUser.name),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 44,
+                                backgroundColor:
+                                    VixoraColors.primary.withOpacity(0.2),
+                                child: Text(
+                                  _getInitials(currentUser.name),
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: VixoraColors.primary,
+                                  ),
                                 ),
                               ),
-                            ),
+                              // UI_REDESIGN: Edit badge — revert to remove
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: const BoxDecoration(
+                                    color: VixoraColors.accent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.edit,
+                                      size: 14,
+                                      color: VixoraColors.background),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
+                          // UI_REDESIGN: Role badge with lime — revert to AppColors.accentCyan
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: currentUser.isStaff
-                                  ? AppColors.primaryNavy.withOpacity(0.3)
-                                  : AppColors.accentCyan.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                              color:
+                                  VixoraColors.primary.withOpacity(0.12),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.pill),
                               border: Border.all(
-                                color: currentUser.isStaff
-                                    ? AppColors.primaryBlue
-                                    : AppColors.accentCyan.withOpacity(0.5),
+                                color:
+                                    VixoraColors.primary.withOpacity(0.3),
                               ),
                             ),
                             child: Row(
@@ -158,20 +174,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ? Icons.security_rounded
                                       : Icons.home_rounded,
                                   size: 14,
-                                  color: currentUser.isStaff
-                                      ? AppColors.primaryBlue
-                                      : AppColors.accentCyan,
+                                  color: VixoraColors.primary,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  currentUser.isStaff ? 'Security Guard' : 'Resident',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
+                                  currentUser.isStaff
+                                      ? 'Security Guard'
+                                      : 'Resident',
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: currentUser.isStaff
-                                        ? Colors.white
-                                        : AppColors.accentCyan,
+                                    color: VixoraColors.primary,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ],
                             ),
@@ -191,11 +207,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Personal Information',
-                            style: AppTextStyles.subtitle.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          // UI_REDESIGN: Section header with lime bar — revert to plain text
+                          Row(
+                            children: [
+                              Container(
+                                width: 3,
+                                height: 18,
+                                decoration: BoxDecoration(
+                                  color: VixoraColors.primary,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Personal Information',
+                                  style: AppTextStyles.subtitle.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
 
@@ -203,8 +237,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(AppRadius.medium),
-                              boxShadow: _isEditing ? [AppShadows.glowCyan] : [],
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.medium),
+                              boxShadow:
+                                  _isEditing ? [AppShadows.glowCyan] : [],
                             ),
                             child: TextFormField(
                               controller: _nameController,
@@ -215,8 +251,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 prefixIcon: Icon(
                                   Icons.person_outline_rounded,
                                   color: _isEditing
-                                      ? AppColors.accentCyan
-                                      : AppColors.textSecondary,
+                                      ? VixoraColors.accent
+                                      : VixoraColors.textSecondary,
                                 ),
                               ),
                               validator: Validators.validateName,
@@ -229,7 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             initialValue: currentUser.email,
                             enabled: false,
                             style: AppTextStyles.body.copyWith(
-                              color: AppColors.textSecondary,
+                              color: VixoraColors.textSecondary,
                             ),
                             decoration: const InputDecoration(
                               labelText: 'Email Address',
@@ -244,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               initialValue: currentUser.userCode,
                               enabled: false,
                               style: AppTextStyles.body.copyWith(
-                                color: AppColors.textSecondary,
+                                color: VixoraColors.textSecondary,
                               ),
                               decoration: const InputDecoration(
                                 labelText: 'Resident Code',
@@ -257,11 +293,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 initialValue: currentUser.flatNo,
                                 enabled: false,
                                 style: AppTextStyles.body.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: VixoraColors.textSecondary,
                                 ),
                                 decoration: const InputDecoration(
                                   labelText: 'Flat / Apartment No.',
-                                  prefixIcon: Icon(Icons.home_work_outlined),
+                                  prefixIcon:
+                                      Icon(Icons.home_work_outlined),
                                 ),
                               ),
                             ]
@@ -273,11 +310,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             curve: Curves.easeInOut,
                             child: _isEditing
                                 ? Padding(
-                                    padding: const EdgeInsets.only(top: 20),
+                                    padding:
+                                        const EdgeInsets.only(top: 20),
                                     child: AppButton(
                                       label: 'Save Changes',
                                       icon: Icons.check_rounded,
-                                      isLoading: profileProvider.isSaving,
+                                      isLoading:
+                                          profileProvider.isSaving,
                                       onPressed: _saveName,
                                       width: double.infinity,
                                     ),
@@ -291,9 +330,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               profileProvider.error!,
                               style: const TextStyle(
-                                color: AppColors.accentRed,
+                                color: VixoraColors.rejected,
                                 fontSize: 13,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
                             ),
                           ],
                         ],
@@ -303,29 +344,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: AppSpacing.lg),
 
                   // Actions & About
+                  // UI_REDESIGN: VixoraButton sign-out with rejected color — revert to AppButton
                   FadeInUp(
                     delay: const Duration(milliseconds: 200),
                     duration: const Duration(milliseconds: 400),
                     child: Column(
                       children: [
-                        AppButton(
-                          label: 'About Vixora',
-                          icon: Icons.info_outline_rounded,
-                          outlined: true,
-                          width: double.infinity,
-                          outlineColor: AppColors.textSecondary,
-                          onPressed: () => Navigator.push(
+                        // UI_REDESIGN: Outlined about button — revert to AppButton outlined
+                        GestureDetector(
+                          onTap: () => Navigator.push(
                             context,
                             VixoraPageRoute(page: const AboutScreen()),
                           ),
+                          child: Container(
+                            width: double.infinity,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.circular(28),
+                              border: Border.all(
+                                  color: VixoraColors.border),
+                            ),
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                      Icons.info_outline_rounded,
+                                      size: 18,
+                                      color:
+                                          VixoraColors.textPrimary),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'About Vixora',
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color:
+                                          VixoraColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        AppButton(
+                        VixoraButton(
                           label: 'Sign Out',
                           icon: Icons.logout_rounded,
-                          outlined: true,
-                          width: double.infinity,
-                          outlineColor: AppColors.accentRed,
+                          color: VixoraColors.rejected,
                           onPressed: () => _signOut(context),
                         ),
                       ],
@@ -365,17 +433,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final success = await profileProvider.updateName(uid, name);
 
     if (success && mounted) {
-      final messenger = ScaffoldMessenger.of(context);
       setState(() => _isEditing = false);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            'Profile updated successfully',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          backgroundColor: AppColors.accentGreen,
-        ),
-      );
+      // UI_REDESIGN: VixoraSnack — revert to ScaffoldMessenger.showSnackBar
+      VixoraSnack.show(context, 'Profile updated successfully');
       // Reload user data in AuthProvider
       await authProvider.loadUser();
     }

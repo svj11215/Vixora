@@ -1,3 +1,4 @@
+// UI_REDESIGN: Shimmer loader with VixoraColors — revert by restoring original
 /// Shimmer loading skeletons for request cards.
 library;
 
@@ -12,8 +13,9 @@ class ShimmerRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surfaceDark,
-      highlightColor: AppColors.surfaceElevated,
+      // UI_REDESIGN: VixoraColors surface shades — revert to AppColors.surfaceDark/surfaceElevated
+      baseColor: VixoraColors.surface,
+      highlightColor: VixoraColors.surfaceHigh,
       child: Container(
         margin: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -21,9 +23,9 @@ class ShimmerRequestCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
+          color: VixoraColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.large),
-          border: Border.all(color: AppColors.surfaceBorder),
+          border: Border.all(color: VixoraColors.border),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +35,7 @@ class ShimmerRequestCard extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
+                color: VixoraColors.surfaceHigh,
                 borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
             ),
@@ -50,7 +52,7 @@ class ShimmerRequestCard extends StatelessWidget {
                         width: 120,
                         height: 16,
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
+                          color: VixoraColors.surfaceHigh,
                           borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                       ),
@@ -58,7 +60,7 @@ class ShimmerRequestCard extends StatelessWidget {
                         width: 60,
                         height: 22,
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
+                          color: VixoraColors.surfaceHigh,
                           borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                       ),
@@ -70,7 +72,7 @@ class ShimmerRequestCard extends StatelessWidget {
                     width: 100,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: VixoraColors.surfaceHigh,
                       borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
@@ -80,7 +82,7 @@ class ShimmerRequestCard extends StatelessWidget {
                     width: 80,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: VixoraColors.surfaceHigh,
                       borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
@@ -90,7 +92,7 @@ class ShimmerRequestCard extends StatelessWidget {
                     width: 140,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: VixoraColors.surfaceHigh,
                       borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),

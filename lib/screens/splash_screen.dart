@@ -1,3 +1,4 @@
+// UI_REDESIGN: New splash screen with lime+cyan palette — revert by restoring original
 /// 2-phase animated splash screen with auth check.
 /// Auth logic kept EXACTLY as-is — only visual layer replaced.
 library;
@@ -28,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _iconController;
   late AnimationController _textController;
   late AnimationController _taglineController;
-  late AnimationController _dotsController;
+  late AnimationController _spinnerController;
   late AnimationController _exitController;
 
   late Animation<double> _iconScale;
@@ -36,12 +37,8 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _textFade;
   late Animation<Offset> _textSlide;
   late Animation<double> _taglineFade;
+  late Animation<double> _spinnerFade;
   late Animation<double> _exitFade;
-
-  // Dot controllers
-  late AnimationController _dot1Controller;
-  late AnimationController _dot2Controller;
-  late AnimationController _dot3Controller;
 
   String? _targetRoute;
 
@@ -71,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _iconController, curve: Curves.easeOut));
 
-    // Text: fades in + slides up 20px
+    // Text: fades in + slides up
     _textController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -93,24 +90,13 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _taglineController, curve: Curves.easeOut),
     );
 
-    // Dots loading indicator
-    _dotsController = AnimationController(
+    // Spinner fade-in
+    _spinnerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-
-    // Staggered dot animations
-    _dot1Controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _dot2Controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _dot3Controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
+    _spinnerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _spinnerController, curve: Curves.easeOut),
     );
 
     // Exit fade
@@ -139,19 +125,10 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     _taglineController.forward();
 
-    // 1200ms: loading dots appear
+    // 1200ms: spinner appears
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
-    _dotsController.forward();
-
-    // Start staggered dot animations
-    _dot1Controller.repeat(reverse: true);
-    await Future.delayed(const Duration(milliseconds: 150));
-    if (!mounted) return;
-    _dot2Controller.repeat(reverse: true);
-    await Future.delayed(const Duration(milliseconds: 150));
-    if (!mounted) return;
-    _dot3Controller.repeat(reverse: true);
+    _spinnerController.forward();
   }
 
   /// Checks if a user is already signed in and navigates accordingly.
@@ -205,49 +182,55 @@ class _SplashScreenState extends State<SplashScreen>
     _iconController.dispose();
     _textController.dispose();
     _taglineController.dispose();
-    _dotsController.dispose();
-    _dot1Controller.dispose();
-    _dot2Controller.dispose();
-    _dot3Controller.dispose();
+    _spinnerController.dispose();
     _exitController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // UI_REDESIGN: New splash visuals — revert by restoring original widget tree
     return Scaffold(
       body: FadeTransition(
         opacity: _exitFade,
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(gradient: AppGradients.primary),
+          color: VixoraColors.background,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Shield icon
+                // Shield icon with radial glow
                 ScaleTransition(
                   scale: _iconScale,
                   child: FadeTransition(
                     opacity: _iconFade,
                     child: Container(
-                      width: 100,
-                      height: 100,
+                      width: 110,
+                      height: 110,
                       decoration: BoxDecoration(
-                        gradient: AppGradients.accent,
                         shape: BoxShape.circle,
-                        boxShadow: [AppShadows.glowBlue],
+                        gradient: RadialGradient(
+                          colors: [
+                            VixoraColors.primary.withOpacity(0.2),
+                            Colors.transparent,
+                          ],
+                        ),
+                        border: Border.all(
+                          color: VixoraColors.primary,
+                          width: 1.5,
+                        ),
                       ),
                       child: const Icon(
                         Icons.security_rounded,
                         size: 52,
-                        color: Colors.white,
+                        color: VixoraColors.primary,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 // "VIXORA" text
                 SlideTransition(
@@ -256,10 +239,10 @@ class _SplashScreenState extends State<SplashScreen>
                     opacity: _textFade,
                     child: Text(
                       'VIXORA',
-                      style: GoogleFonts.poppins(
-                        fontSize: 38,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: VixoraColors.primary,
                         letterSpacing: 6,
                       ),
                     ),
@@ -271,60 +254,31 @@ class _SplashScreenState extends State<SplashScreen>
                 FadeTransition(
                   opacity: _taglineFade,
                   child: Text(
-                    'Secure. Smart. Simple.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: AppColors.accentCyan,
-                      letterSpacing: 1,
+                    'Smart Entry. Safe Living.',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      color: VixoraColors.textSecondary,
+                      letterSpacing: 1.2,
                     ),
                   ),
                 ),
                 const SizedBox(height: 48),
 
-                // Loading dots
+                // Loading spinner
                 FadeTransition(
-                  opacity: Tween<double>(
-                    begin: 0.0,
-                    end: 1.0,
-                  ).animate(_dotsController),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _AnimatedDot(controller: _dot1Controller),
-                      const SizedBox(width: 8),
-                      _AnimatedDot(controller: _dot2Controller),
-                      const SizedBox(width: 8),
-                      _AnimatedDot(controller: _dot3Controller),
-                    ],
+                  opacity: _spinnerFade,
+                  child: const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: VixoraColors.accent,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AnimatedDot extends StatelessWidget {
-  final AnimationController controller;
-
-  const _AnimatedDot({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: Tween<double>(
-        begin: 1.0,
-        end: 1.5,
-      ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
-      child: Container(
-        width: 8,
-        height: 8,
-        decoration: const BoxDecoration(
-          color: AppColors.accentCyan,
-          shape: BoxShape.circle,
         ),
       ),
     );

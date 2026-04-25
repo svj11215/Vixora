@@ -1,3 +1,4 @@
+// UI_REDESIGN: Guard home screen with VixoraColors bottom nav — revert by restoring original
 /// Guard home screen with premium bottom navigation.
 /// ALL navigation logic kept AS-IS.
 library;
@@ -30,11 +31,12 @@ class _GuardHomeScreenState extends State<GuardHomeScreen> {
         index: _currentIndex,
         children: _screens,
       ),
+      // UI_REDESIGN: Bottom nav with VixoraColors lime palette — revert to AppColors.accentCyan
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
+          color: VixoraColors.surface,
           border: const Border(
-            top: BorderSide(color: AppColors.surfaceBorder, width: 1),
+            top: BorderSide(color: VixoraColors.border, width: 1),
           ),
           boxShadow: [
             BoxShadow(
@@ -48,13 +50,16 @@ class _GuardHomeScreenState extends State<GuardHomeScreen> {
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
           backgroundColor: Colors.transparent,
-          selectedItemColor: AppColors.accentCyan,
-          unselectedItemColor: AppColors.textTertiary,
-          selectedLabelStyle: GoogleFonts.poppins(
+          selectedItemColor: VixoraColors.primary,
+          unselectedItemColor: VixoraColors.textSecondary,
+          selectedLabelStyle: GoogleFonts.dmSans(
             fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
-          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 11),
+          unselectedLabelStyle: GoogleFonts.dmSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w400,
+          ),
           type: BottomNavigationBarType.fixed,
           elevation: 0,
           items: [
@@ -63,11 +68,11 @@ class _GuardHomeScreenState extends State<GuardHomeScreen> {
               activeIcon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.accentCyan.withOpacity(0.15),
+                  color: VixoraColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.person_add_rounded,
-                    color: AppColors.accentCyan),
+                    color: VixoraColors.primary),
               ),
               label: 'Add Request',
             ),
@@ -76,11 +81,11 @@ class _GuardHomeScreenState extends State<GuardHomeScreen> {
               activeIcon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.accentCyan.withOpacity(0.15),
+                  color: VixoraColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.list_alt_rounded,
-                    color: AppColors.accentCyan),
+                    color: VixoraColors.primary),
               ),
               label: 'My Requests',
             ),

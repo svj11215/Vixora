@@ -1,3 +1,4 @@
+// UI_REDESIGN: App button with VixoraColors — revert by restoring original
 /// Reusable gradient button with loading state and press animation.
 library;
 
@@ -55,7 +56,8 @@ class _AppButtonState extends State<AppButton> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadius.pill),
                 border: Border.all(
-                  color: widget.outlineColor ?? AppColors.surfaceBorder,
+                  // UI_REDESIGN: VixoraColors.border — revert to AppColors.surfaceBorder
+                  color: widget.outlineColor ?? VixoraColors.border,
                   width: 1.5,
                 ),
               ),
@@ -74,15 +76,19 @@ class _AppButtonState extends State<AppButton> {
                         children: [
                           if (widget.icon != null) ...[
                             Icon(widget.icon, size: 18,
-                                color: widget.outlineColor ?? AppColors.textPrimary),
+                                color: widget.outlineColor ?? VixoraColors.textPrimary),
                             const SizedBox(width: 8),
                           ],
-                          Text(
-                            widget.label,
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: widget.outlineColor ?? AppColors.textPrimary,
+                          Flexible(
+                            child: Text(
+                              widget.label,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: widget.outlineColor ?? VixoraColors.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ],
@@ -108,17 +114,25 @@ class _AppButtonState extends State<AppButton> {
             width: widget.width,
             height: 52,
             decoration: BoxDecoration(
+              // UI_REDESIGN: Lime→Cyan gradient — revert to AppGradients.accent
               gradient: widget.gradient ?? AppGradients.accent,
               borderRadius: BorderRadius.circular(AppRadius.pill),
-              boxShadow: [AppShadows.cardShadow],
+              boxShadow: [
+                BoxShadow(
+                  color: VixoraColors.primary.withOpacity(0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Center(
               child: widget.isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        // UI_REDESIGN: Dark background spinner on lime — revert to white
+                        color: VixoraColors.background,
                         strokeWidth: 2,
                       ),
                     )
@@ -126,15 +140,21 @@ class _AppButtonState extends State<AppButton> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (widget.icon != null) ...[
-                          Icon(widget.icon, size: 18, color: Colors.white),
+                          // UI_REDESIGN: Dark icon on lime gradient — revert to white
+                          Icon(widget.icon, size: 18, color: VixoraColors.background),
                           const SizedBox(width: 8),
                         ],
-                        Text(
-                          widget.label,
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            widget.label,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              // UI_REDESIGN: Dark text on lime gradient — revert to white
+                              color: VixoraColors.background,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

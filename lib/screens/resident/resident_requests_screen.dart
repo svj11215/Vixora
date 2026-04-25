@@ -1,3 +1,4 @@
+// UI_REDESIGN: Resident requests screen with lime+cyan palette — revert by restoring original
 /// Resident requests screen with premium access code card, pill tab bar, and shimmer loading.
 /// ALL StreamBuilder, provider calls, and business logic kept AS-IS.
 library;
@@ -13,7 +14,6 @@ import 'package:vixora/models/visitor_request_model.dart';
 import 'package:vixora/providers/auth_provider.dart' as app;
 import 'package:vixora/providers/visitor_request_provider.dart';
 import 'package:vixora/widgets/empty_state_widget.dart';
-import 'package:vixora/widgets/glass_card.dart';
 import 'package:vixora/widgets/loading_overlay.dart';
 import 'package:vixora/widgets/shimmer_loader.dart';
 import 'package:vixora/widgets/visitor_request_card.dart';
@@ -44,10 +44,6 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
     super.dispose();
   }
 
-  String _formatCode(String code) {
-    return code.split('').join(' ');
-  }
-
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<app.AuthProvider>();
@@ -55,20 +51,25 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
     if (currentUser == null) {
       return const Center(
         child: Text('Not authenticated',
-            style: TextStyle(color: AppColors.textSecondary)),
+            style: TextStyle(color: VixoraColors.textSecondary)),
       );
     }
 
     final provider = context.read<VisitorRequestProvider>();
+    // UI_REDESIGN: Responsive padding — revert to fixed AppSpacing.md
+    final sw = MediaQuery.of(context).size.width;
+    final hPad = (sw * 0.044).clamp(14.0, 20.0);
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceDarker,
+      // UI_REDESIGN: VixoraColors.background scaffold — revert to AppColors.surfaceDarker
+      backgroundColor: VixoraColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceDarker,
+        backgroundColor: VixoraColors.background,
         title: Row(
           children: [
+            // UI_REDESIGN: Primary-colored icon — revert to AppColors.accentCyan
             const Icon(Icons.security_rounded,
-                color: AppColors.accentCyan, size: 20),
+                color: VixoraColors.primary, size: 20),
             const SizedBox(width: 8),
             Text('Vixora', style: AppTextStyles.title),
           ],
@@ -78,7 +79,7 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: AppColors.surfaceBorder,
+            color: VixoraColors.border,
             height: 1,
           ),
         ),
@@ -86,69 +87,76 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
       body: Column(
         children: [
           // Resident code card
+          // UI_REDESIGN: New access code card with glowing border — revert to old GlassCard gradient
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: EdgeInsets.all(hPad),
             child: FadeInDown(
               duration: const Duration(milliseconds: 400),
-              child: GlassCard(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1E3A8A),
-                    Color(0xFF1E40AF),
-                    Color(0xFF0369A1),
-                  ],
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: VixoraColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.large),
+                  border: Border.all(color: VixoraColors.borderGlow),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.vpn_key_rounded,
-                                  color: AppColors.accentCyan, size: 16),
-                              const SizedBox(width: 6),
-                              Text(
-                                'YOUR ACCESS CODE',
-                                style: AppTextStyles.label.copyWith(
-                                  color:
-                                      AppColors.accentCyan.withOpacity(0.8),
-                                ),
-                              ),
-                            ],
+                    Row(
+                      children: [
+                        Text(
+                          'YOUR ACCESS CODE',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: VixoraColors.textSecondary,
+                            letterSpacing: 2,
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _formatCode(currentUser.userCode),
-                            style: GoogleFonts.poppins(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Share this code with your guard',
-                            style: AppTextStyles.caption.copyWith(
-                              color: Colors.white.withOpacity(0.6),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.copy_rounded,
+                            size: 18, color: VixoraColors.accent),
+                      ],
                     ),
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        shape: BoxShape.circle,
+                    const SizedBox(height: 12),
+                    // UI_REDESIGN: Individual digit containers — revert to single Text
+                    Row(
+                      children: currentUser.userCode
+                          .split('')
+                          .map((digit) => Expanded(
+                                child: Container(
+                                  height: 64,
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 3),
+                                  decoration: BoxDecoration(
+                                    color: VixoraColors.surfaceHigh,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: VixoraColors.border),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      digit,
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                        color: VixoraColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Share this code with your guard',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        color: VixoraColors.textSecondary,
                       ),
-                      child: const Icon(Icons.shield_rounded,
-                          color: Colors.white, size: 28),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ],
                 ),
@@ -156,29 +164,29 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
             ),
           ),
 
-          // Custom pill tab bar
+          // UI_REDESIGN: Pill tab bar with lime active color — revert to old gradient indicator
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            padding: EdgeInsets.symmetric(horizontal: hPad),
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: VixoraColors.surface,
                 borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  gradient: AppGradients.accent,
+                  color: VixoraColors.primary,
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: Colors.white,
-                unselectedLabelColor: AppColors.textSecondary,
-                labelStyle: GoogleFonts.poppins(
+                labelColor: VixoraColors.background,
+                unselectedLabelColor: VixoraColors.textSecondary,
+                labelStyle: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
-                unselectedLabelStyle: GoogleFonts.poppins(fontSize: 13),
+                unselectedLabelStyle: GoogleFonts.dmSans(fontSize: 13),
                 dividerColor: Colors.transparent,
                 tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
               ),
@@ -201,7 +209,9 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                     child: Text(
                       'Error: ${snapshot.error}',
                       style: AppTextStyles.body
-                          .copyWith(color: AppColors.accentRed),
+                          .copyWith(color: VixoraColors.rejected),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
                     ),
                   );
                 }
@@ -221,8 +231,9 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                     }
 
                     return RefreshIndicator(
-                      color: AppColors.accentCyan,
-                      backgroundColor: AppColors.surfaceDark,
+                      // UI_REDESIGN: Primary refresh color — revert to AppColors.accentCyan
+                      color: VixoraColors.primary,
+                      backgroundColor: VixoraColors.surface,
                       onRefresh: () async {
                         await Future.delayed(
                             const Duration(milliseconds: 500));
@@ -281,7 +292,8 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surfaceDark,
+      // UI_REDESIGN: VixoraColors.surface sheet — revert to AppColors.surfaceDark
+      backgroundColor: VixoraColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppRadius.xlarge)),
@@ -312,7 +324,7 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                 width: 40,
                                 height: 4,
                                 decoration: BoxDecoration(
-                                  color: AppColors.textTertiary
+                                  color: VixoraColors.textHint
                                       .withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(
                                       AppRadius.pill),
@@ -328,9 +340,12 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                   child: Text(
                                     request.visitorName,
                                     style: AppTextStyles.headline,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                 ),
-                                StatusBadgeInline(status: request.status),
+                                // UI_REDESIGN: StatusChip — revert to StatusBadgeInline
+                                StatusChip(status: request.status),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -338,6 +353,8 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                               dateFormat
                                   .format(request.createdAt.toDate()),
                               style: AppTextStyles.caption,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                             const SizedBox(height: 24),
 
@@ -378,13 +395,14 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                       'Add resolution note (optional)',
                                   prefixIcon: const Icon(
                                       Icons.note_add_outlined,
-                                      color: AppColors.accentCyan),
+                                      color: VixoraColors.accent),
                                   filled: true,
-                                  fillColor: AppColors.surfaceElevated,
+                                  fillColor: VixoraColors.surfaceHigh,
                                 ),
                                 maxLines: 2,
                               ),
                               const SizedBox(height: 16),
+                              // UI_REDESIGN: Approve/Reject buttons with new colors — revert to old gradients
                               Row(
                                 children: [
                                   Expanded(
@@ -416,10 +434,10 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                               Text(
                                                 'Approve',
                                                 style: GoogleFonts
-                                                    .poppins(
+                                                    .dmSans(
                                                   fontSize: 15,
                                                   fontWeight:
-                                                      FontWeight.w600,
+                                                      FontWeight.w700,
                                                   color: Colors.white,
                                                 ),
                                               ),
@@ -445,7 +463,7 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                               BorderRadius.circular(
                                                   AppRadius.pill),
                                           border: Border.all(
-                                            color: AppColors.accentRed
+                                            color: VixoraColors.rejected
                                                 .withOpacity(0.6),
                                           ),
                                         ),
@@ -457,18 +475,18 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                                               const Icon(
                                                   Icons.close_rounded,
                                                   color:
-                                                      AppColors.accentRed,
+                                                      VixoraColors.rejected,
                                                   size: 18),
                                               const SizedBox(width: 8),
                                               Text(
                                                 'Reject',
                                                 style: GoogleFonts
-                                                    .poppins(
+                                                    .dmSans(
                                                   fontSize: 15,
                                                   fontWeight:
-                                                      FontWeight.w600,
+                                                      FontWeight.w700,
                                                   color:
-                                                      AppColors.accentRed,
+                                                      VixoraColors.rejected,
                                                 ),
                                               ),
                                             ],
@@ -508,30 +526,26 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
 
     if (success) {
       nav.pop();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            status == AppConstants.statusApproved
-                ? 'Visitor approved'
-                : 'Visitor rejected',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          backgroundColor: status == AppConstants.statusApproved
-              ? AppColors.accentGreen
-              : AppColors.accentRed,
-        ),
+      // UI_REDESIGN: VixoraSnack — revert to ScaffoldMessenger.showSnackBar
+      VixoraSnack.show(
+        scaffoldMessenger.context,
+        status == AppConstants.statusApproved
+            ? 'Visitor approved'
+            : 'Visitor rejected',
+        error: status == AppConstants.statusRejected,
       );
     }
   }
 
   /// Builds a detail row for the bottom sheet.
+  // UI_REDESIGN: Detail row with accent icon — revert to AppColors.accentCyan
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: AppColors.accentCyan),
+          Icon(icon, size: 18, color: VixoraColors.accent),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -542,8 +556,10 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
                 Text(
                   value,
                   style: AppTextStyles.body.copyWith(
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ],
             ),
@@ -592,45 +608,6 @@ class _ResidentRequestsScreenState extends State<ResidentRequestsScreen>
         return 'No visitors have been rejected.';
       default:
         return 'Visitor requests from the guard will appear here.';
-    }
-  }
-}
-
-/// Inline status badge used in bottom sheet (reuses StatusBadge logic).
-class StatusBadgeInline extends StatelessWidget {
-  final String status;
-  const StatusBadgeInline({super.key, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final statusColor = _getColor();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.2,
-          color: statusColor,
-        ),
-      ),
-    );
-  }
-
-  Color _getColor() {
-    switch (status) {
-      case AppConstants.statusApproved:
-        return AppColors.accentGreen;
-      case AppConstants.statusRejected:
-        return AppColors.accentRed;
-      default:
-        return AppColors.accentAmber;
     }
   }
 }

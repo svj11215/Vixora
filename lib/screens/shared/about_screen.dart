@@ -1,3 +1,4 @@
+// UI_REDESIGN: About screen with VixoraColors palette — revert by restoring original
 /// Premium about screen showing app information and developer details.
 /// Upgraded with glassmorphism and animated entry.
 library;
@@ -15,13 +16,14 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceDarker,
+      // UI_REDESIGN: VixoraColors.background — revert to AppColors.surfaceDarker
+      backgroundColor: VixoraColors.background,
       appBar: AppBar(
         title: Text('About Vixora', style: AppTextStyles.title),
-        backgroundColor: AppColors.surfaceDarker,
+        backgroundColor: VixoraColors.background,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.surfaceBorder, height: 1),
+          child: Container(color: VixoraColors.border, height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -29,60 +31,67 @@ class AboutScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: AppSpacing.md),
-            
+
             // App Icon
+            // UI_REDESIGN: Lime radial glow icon — revert to AppGradients.accent
             FadeInDown(
               duration: const Duration(milliseconds: 500),
               child: Container(
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  gradient: AppGradients.accent,
-                  borderRadius: BorderRadius.circular(AppRadius.xlarge),
-                  boxShadow: [AppShadows.glowBlue],
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      VixoraColors.primary.withOpacity(0.2),
+                      Colors.transparent,
+                    ],
+                  ),
+                  border: Border.all(color: VixoraColors.primary, width: 1.5),
                 ),
                 child: const Icon(
-                  Icons.shield_rounded,
+                  Icons.security_rounded,
                   size: 52,
-                  color: Colors.white,
+                  color: VixoraColors.primary,
                 ),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            
+
             // App Name
             FadeInUp(
               delay: const Duration(milliseconds: 100),
               duration: const Duration(milliseconds: 400),
               child: Text(
                 AppConstants.appName,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.dmSans(
                   fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 4,
+                  color: VixoraColors.primary,
                 ),
               ),
             ),
-            
+
             // App Version
             FadeInUp(
               delay: const Duration(milliseconds: 200),
               duration: const Duration(milliseconds: 400),
               child: Container(
                 margin: const EdgeInsets.only(top: 8, bottom: 24),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceElevated,
+                  color: VixoraColors.surface,
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  border: Border.all(color: AppColors.surfaceBorder),
+                  border: Border.all(color: VixoraColors.border),
                 ),
                 child: Text(
                   'Version ${AppConstants.appVersion}',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.accentCyan,
+                    color: VixoraColors.accent,
                   ),
                 ),
               ),
@@ -97,7 +106,7 @@ class AboutScreen extends StatelessWidget {
                 child: Text(
                   AppConstants.appDescription,
                   style: AppTextStyles.body.copyWith(
-                    color: AppColors.textSecondary,
+                    color: VixoraColors.textSecondary,
                     height: 1.6,
                   ),
                   textAlign: TextAlign.center,
@@ -120,19 +129,21 @@ class AboutScreen extends StatelessWidget {
                   _buildSection(
                     icon: Icons.code_rounded,
                     title: 'System Architecture',
-                    content: 'Built with Flutter 3.x & Dart. Powered by Firebase (Auth, Firestore, Cloud Messaging) for real-time infrastructure and Cloudinary for asset delivery.',
+                    content:
+                        'Built with Flutter 3.x & Dart. Powered by Firebase (Auth, Firestore, Cloud Messaging) for real-time infrastructure and Cloudinary for asset delivery.',
                   ),
                   _buildSection(
                     icon: Icons.layers_rounded,
                     title: 'Technology Stack',
-                    content: '• Flutter UI Toolkit\n• Provider State Management\n• Firebase Core Services\n• NoSQL Data Store\n• Glassmorphism Design System',
+                    content:
+                        '• Flutter UI Toolkit\n• Provider State Management\n• Firebase Core Services\n• NoSQL Data Store\n• Glassmorphism Design System',
                   ),
                 ],
               ),
             ),
 
             const SizedBox(height: AppSpacing.xxl),
-            
+
             // Footer
             FadeIn(
               delay: const Duration(milliseconds: 600),
@@ -142,15 +153,15 @@ class AboutScreen extends StatelessWidget {
                   Container(
                     width: 40,
                     height: 2,
-                    color: AppColors.surfaceBorder,
+                    color: VixoraColors.border,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Crafted for modern living',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textTertiary,
+                      color: VixoraColors.textHint,
                       letterSpacing: 1,
                     ),
                   ),
@@ -158,7 +169,7 @@ class AboutScreen extends StatelessWidget {
                   const Icon(
                     Icons.favorite_rounded,
                     size: 16,
-                    color: AppColors.accentRed,
+                    color: VixoraColors.rejected,
                   ),
                 ],
               ),
@@ -182,13 +193,14 @@ class AboutScreen extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // UI_REDESIGN: Primary icon circle — revert to AppColors.accentCyan
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.accentCyan.withOpacity(0.15),
+                color: VixoraColors.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
-              child: Icon(icon, color: AppColors.accentCyan, size: 20),
+              child: Icon(icon, color: VixoraColors.primary, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -198,14 +210,16 @@ class AboutScreen extends StatelessWidget {
                   Text(
                     title,
                     style: AppTextStyles.subtitle.copyWith(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 6),
                   Text(
                     content,
                     style: AppTextStyles.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: VixoraColors.textSecondary,
                       height: 1.5,
                     ),
                   ),

@@ -1,3 +1,4 @@
+// UI_REDESIGN: Resident home screen with lime+cyan bottom nav — revert by restoring original
 /// Resident home screen with custom bottom nav bar.
 /// ALL initState() FCM handler logic kept EXACTLY AS-IS.
 library;
@@ -79,11 +80,12 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
+      // UI_REDESIGN: Bottom nav with VixoraColors — revert to AppColors.surfaceDark etc.
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
+          color: VixoraColors.surface,
           border: const Border(
-            top: BorderSide(color: AppColors.surfaceBorder, width: 1),
+            top: BorderSide(color: VixoraColors.border, width: 1),
           ),
           boxShadow: [
             BoxShadow(
@@ -97,13 +99,17 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
           backgroundColor: Colors.transparent,
-          selectedItemColor: AppColors.accentCyan,
-          unselectedItemColor: AppColors.textTertiary,
-          selectedLabelStyle: GoogleFonts.poppins(
+          // UI_REDESIGN: Lime selected color — revert to AppColors.accentCyan
+          selectedItemColor: VixoraColors.primary,
+          unselectedItemColor: VixoraColors.textSecondary,
+          selectedLabelStyle: GoogleFonts.dmSans(
             fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
-          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 11),
+          unselectedLabelStyle: GoogleFonts.dmSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w400,
+          ),
           type: BottomNavigationBarType.fixed,
           elevation: 0,
           items: [
@@ -112,12 +118,12 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
               activeIcon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.accentCyan.withOpacity(0.15),
+                  color: VixoraColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.inbox_rounded,
-                  color: AppColors.accentCyan,
+                  color: VixoraColors.primary,
                 ),
               ),
               label: 'Requests',
@@ -127,12 +133,12 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
               activeIcon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.accentCyan.withOpacity(0.15),
+                  color: VixoraColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.person_rounded,
-                  color: AppColors.accentCyan,
+                  color: VixoraColors.primary,
                 ),
               ),
               label: 'Profile',
