@@ -2,12 +2,11 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.vixora"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.vixora.app"
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -21,11 +20,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.vixora"
+        applicationId = "com.vixora.app"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
         multiDexEnabled = true
     }
 
@@ -42,4 +41,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("androidx.multidex:multidex:2.0.1")
 }
+
+apply(plugin = "com.google.gms.google-services")

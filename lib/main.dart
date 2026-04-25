@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:vixora/core/constants/app_constants.dart';
 import 'package:vixora/core/theme/app_theme.dart';
@@ -18,6 +19,10 @@ import 'package:vixora/screens/resident/resident_home_screen.dart';
 import 'package:vixora/screens/splash_screen.dart';
 import 'package:vixora/services/fcm_service.dart';
 
+/// Global FlutterLocalNotificationsPlugin instance.
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -30,6 +35,26 @@ Future<void> main() async {
 
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Initialize flutter_local_notifications
+  const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initSettings = InitializationSettings(
+    android: androidSettings,
+  );
+  await flutterLocalNotificationsPlugin.initialize(initSettings);
+
+  // Create Android notification channel
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'visitor_channel',
+    'Visitor Requests',
+    description: 'Notifications for new visitor requests',
+    importance: Importance.max,
+  );
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
 
   runApp(const VixoraApp());
 }

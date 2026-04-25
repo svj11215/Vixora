@@ -1,4 +1,4 @@
-package com.example.vixora
+package com.vixora.app
 
 import io.flutter.embedding.android.FlutterActivity
 

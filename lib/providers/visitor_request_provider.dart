@@ -1,6 +1,7 @@
 /// Provider for visitor request operations: submit, update status, delete, and real-time streams.
 library;
 
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -9,7 +10,6 @@ import 'package:vixora/core/utils/app_exception.dart';
 import 'package:vixora/models/user_model.dart';
 import 'package:vixora/models/visitor_request_model.dart';
 import 'package:vixora/services/cloudinary_service.dart';
-import 'package:vixora/services/fcm_service.dart';
 import 'package:vixora/services/firestore_service.dart';
 
 class VisitorRequestProvider extends ChangeNotifier {
@@ -82,7 +82,9 @@ class VisitorRequestProvider extends ChangeNotifier {
     }
   }
 
-  /// Submits a new visitor request to Firestore and sends FCM notification to resident.
+  /// Submits a new visitor request to Firestore.
+  /// The resident will be notified via Firestore snapshot listener + local notification.
+  /// No Cloud Functions or server-side push needed.
   Future<bool> submitVisitorRequest({
     required String visitorName,
     required String visitorPhone,
@@ -110,48 +112,7 @@ class VisitorRequestProvider extends ChangeNotifier {
         createdAt: Timestamp.now(),
       );
 
-      // Create the visitor request and get the document ID
-      final docId = await _firestoreService.createVisitorRequest(request);
-
-      // Fetch the resident's FCM token from Firestore
-      try {
-        final residentDoc = await FirebaseFirestore.instance
-            .collection(AppConstants.usersCollection)
-            .doc(residentId)
-            .get();
-
-        if (residentDoc.exists) {
-          final fcmToken = residentDoc.data()?[AppConstants.fieldFcmToken];
-
-          // Send FCM notification if token exists
-          if (fcmToken != null && fcmToken.isNotEmpty) {
-            try {
-              await FcmService().sendNotification(
-                fcmToken: fcmToken,
-                visitorName: visitorName,
-                purpose: purpose,
-                requestId: docId,
-              );
-            } catch (e) {
-              print(
-                '[VisitorRequestProvider] Failed to send FCM notification: $e',
-              );
-              // Log the error but don't fail the submission
-            }
-          } else {
-            print(
-              '[VisitorRequestProvider] Resident $residentId has no FCM token',
-            );
-          }
-        } else {
-          print(
-            '[VisitorRequestProvider] Resident document not found: $residentId',
-          );
-        }
-      } catch (e) {
-        print('[VisitorRequestProvider] Error fetching resident data: $e');
-        // Log the error but don't fail the submission
-      }
+      await _firestoreService.createVisitorRequest(request);
 
       _uploadedImageUrl = null;
       return true;

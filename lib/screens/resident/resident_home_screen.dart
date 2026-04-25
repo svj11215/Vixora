@@ -6,7 +6,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vixora/core/theme/app_theme.dart';
-import 'package:vixora/core/utils/page_transitions.dart';
 import 'package:vixora/screens/resident/request_detail_screen.dart';
 import 'package:vixora/screens/resident/resident_requests_screen.dart';
 import 'package:vixora/screens/shared/profile_screen.dart';

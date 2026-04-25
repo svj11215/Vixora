@@ -59,7 +59,7 @@ class AppConstants {
   ];
 
   // ── FCM ──
-  static const String notificationChannelId = 'vixora_visitors';
+  static const String notificationChannelId = 'visitor_channel';
   static const String notificationChannelName = 'Visitor Requests';
   static const String notificationChannelDesc =
       'Notifications for visitor requests at your apartment';

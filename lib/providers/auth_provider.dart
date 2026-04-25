@@ -1,6 +1,8 @@
 /// Provider for authentication state management using ChangeNotifier.
 library;
 
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:vixora/core/constants/app_constants.dart';
@@ -16,6 +18,7 @@ class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoading = false;
   String? _error;
+  StreamSubscription<User?>? _authStateSubscription;
 
   /// The currently authenticated user model, or null if not logged in.
   UserModel? get currentUser => _currentUser;
@@ -51,6 +54,11 @@ class AuthProvider extends ChangeNotifier {
 
       // Initialize FCM after successful sign-in
       await _fcmTokenService.initializeFCM(user.uid);
+
+      // Start Firestore listener for residents to get local notifications
+      if (user.isResident) {
+        _fcmTokenService.startResidentRequestListener(user.uid);
+      }
     } on AppException catch (e) {
       _error = e.message;
       _currentUser = null;
@@ -68,16 +76,17 @@ class AuthProvider extends ChangeNotifier {
   /// Used on app restart from SplashScreen to restore session.
   Future<void> loadUser() async {
     // Defer listener notification until after frame is built
-    void _notify() {
-      if (!kIsWeb)
+    void notify() {
+      if (!kIsWeb) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           notifyListeners();
         });
+      }
     }
 
     _isLoading = true;
     _error = null;
-    _notify();
+    notify();
 
     try {
       final user = await _authService.getCurrentUserModel();
@@ -86,6 +95,11 @@ class AuthProvider extends ChangeNotifier {
       if (user != null) {
         // Re-initialize FCM on app restart
         await _fcmTokenService.initializeFCM(user.uid);
+
+        // Start Firestore listener for residents to get local notifications
+        if (user.isResident) {
+          _fcmTokenService.startResidentRequestListener(user.uid);
+        }
       }
     } on AppException catch (e) {
       _error = e.message;
@@ -95,7 +109,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = null;
     } finally {
       _isLoading = false;
-      _notify();
+      notify();
     }
   }
 
@@ -105,6 +119,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _fcmTokenService.stopResidentRequestListener();
       await _authService.signOut();
       _currentUser = null;
       _error = null;
@@ -122,5 +137,12 @@ class AuthProvider extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _authStateSubscription?.cancel();
+    _fcmTokenService.dispose();
+    super.dispose();
   }
 }
